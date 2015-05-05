@@ -1,0 +1,6 @@
+._*
+.DS_Store
+
+#Arquivo de Configuração
+application/config/config.php
+application/config/database.php
