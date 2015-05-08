@@ -4,3 +4,5 @@
 #Arquivo de Configuração
 application/config/config.php
 application/config/database.php
+application/config/beta_informatica.php
+uploads
