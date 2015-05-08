@@ -73,10 +73,10 @@ class Files extends CI_Controller {
 						exit("Houve um erro ao salvar o arquivo!");
 					}
 				} else {
-					exit("O diretório ". $this->BIConfig->diretorio_arquivos_txt. " não tem permissão de escrita!");
+					exit("O diretório ". $basePath. " não tem permissão de escrita!");
 				}
 			} else {
-				exit("O diretório ". $this->BIConfig->diretorio_arquivos_txt. " não existe!");
+				exit("O diretório ". $basePath. " não existe!");
 			}	
 		}
 	}
