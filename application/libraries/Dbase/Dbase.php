@@ -23,7 +23,7 @@ Class Dbase {
 		if (file_exists($file)) {
 			$this->_file = $file;	
 		} else {
-			throw new Exception("Erro ao carregar arquivo DBF: O arquivo $file não existe!");
+			throw new \Exception("Erro ao carregar arquivo DBF: O arquivo $file não existe!");
 		}
 		
 	}
@@ -36,7 +36,7 @@ Class Dbase {
 	public function open()
 	{
 		if (!$this->_identifier = dbase_open($this->_file, $this->_mode)) {
-			throw new Exception("Erro ao abrir o arquivo DBF.");
+			throw new \Exception("Erro ao abrir o arquivo DBF.");
 		}
 		
 		$this->_header = dbase_get_header_info($this->_identifier);
