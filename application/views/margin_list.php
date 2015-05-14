@@ -2,7 +2,7 @@
   
   <div class="row row-stat">
     <div class="col-md-12">
-      <!-- <a class="pull-right" href="<?php echo site_url('')?>">Gerar Arquivo de Margem</a> -->
+      <a class="btn btn-primary pull-right" href="<?php echo site_url('files/createMarginFile')?>">Gerar Arquivo de Margem</a>
     </div>
   </div>
 
@@ -30,7 +30,7 @@
                 <td><?php echo $row->type_name?></td>
                 <td><?php echo date('d/m/Y H:i:s', strtotime($row->file_upload_date))?></td>
                 <td class="text-right">
-                  <a href="<?php echo site_url($row->file_path)?>"><i class="fa fa-download"></i></a>
+                  <a href="<?php echo site_url('files/download/'.$row->file_id)?>"><i class="fa fa-download"></i></a>
                 </th>
               </tr>
             <?php

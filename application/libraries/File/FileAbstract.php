@@ -65,7 +65,7 @@ Class FileAbstract {
 				if (isset($data->$key) && array_key_exists($value->fieldName, $this->getFileStructure())) {
 			 		$collection[$value->fieldName] = $data->$key;
 				} else {
-					throw new \Exception("ERRO NA ESTRUTURA DO ARQIUVO!", 1);
+					throw new \Exception("ERRO NA ESTRUTURA DO ARQUIVO: ERRO NO CAMPO ".$key, 1);
 				}
 			}
 			$this->_dataCollection[] = $collection;
@@ -142,27 +142,47 @@ Class FileAbstract {
     {
         switch ($structure->fieldPad) {
             case 'LEFT_ZERO':
-                return str_pad($data, $structure->fieldSize, "0", STR_PAD_LEFT);
+                #return str_pad($data, $structure->fieldSize, "0", STR_PAD_LEFT);
+                return $this->mb_str_pad($data, $structure->fieldSize, "0", STR_PAD_LEFT);
                 break;
             case 'LEFT_SPACE':
-                return str_pad($data, $structure->fieldSize, " ", STR_PAD_LEFT);
+                #return str_pad($data, $structure->fieldSize, " ", STR_PAD_LEFT);
+            	return $this->mb_str_pad($data, $structure->fieldSize, " ", STR_PAD_LEFT);
                 break;
             case 'RIGHT_ZERO':
-                return str_pad($data, $structure->fieldSize, "0", STR_PAD_RIGHT);
+                #return str_pad($data, $structure->fieldSize, "0", STR_PAD_RIGHT);
+            	return $this->mb_str_pad($data, $structure->fieldSize, "0", STR_PAD_RIGHT);
                 break;
             case 'RIGHT_SPACE':
-                return str_pad($data, $structure->fieldSize, " ", STR_PAD_RIGHT);
+                #return str_pad($data, $structure->fieldSize, " ", STR_PAD_RIGHT);
+                return $this->mb_str_pad($data, $structure->fieldSize, " ", STR_PAD_RIGHT);
                 break;
             case 'BOTH_ZERO':
-                return str_pad($data, $structure->fieldSize, "0", STR_PAD_BOTH);
+                #return str_pad($data, $structure->fieldSize, "0", STR_PAD_BOTH);
+                return $this->mb_str_pad($data, $structure->fieldSize, "0", STR_PAD_BOTH);
                 break;
             case 'BOTH_SPACE':
-                return str_pad($data, $structure->fieldSize, " ", STR_PAD_BOTH);
+                #return str_pad($data, $structure->fieldSize, " ", STR_PAD_BOTH);
+            	return $this->mb_str_pad($data, $structure->fieldSize, " ", STR_PAD_BOTH);
                 break;
             default:
                 return NULL;
                 break;
         }
+    }
+
+    public function mb_str_pad( $input, $pad_length, $pad_string = ' ', $pad_type = STR_PAD_RIGHT)
+	{
+	    $diff = strlen( $input ) - mb_strlen( $input);
+	    return str_pad( $input, $pad_length + $diff, $pad_string, $pad_type );
+	}
+
+    public function dateToFile($date) {
+    	return date('dmY', strtotime($date));
+    }
+
+    public function dateToHuman() {
+
     }
 
 }

@@ -9,9 +9,10 @@ Class FileMargin extends FileAbstract {
 	public $estabelecimento;
 	public $orgao;
 	public $margem;
+    public $margemCartao;
 	public $dataNascimento;
     public $dataAdmissao;
-    public $fimContrato;
+    public $dataFimContrato;
 	public $regimeTrabalho;
 	public $localTrabalho;
 	public $carteiraIdentidade;
@@ -20,17 +21,18 @@ Class FileMargin extends FileAbstract {
 	{
 		$structure = new FileStructure;
 		$structure->setField('matricula', FileStructure::TYPE_INTEGER, 0, 10, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
-		$structure->setField('cpf', FileStructure::TYPE_STRING, 10, 11);
+		$structure->setField('cpf', FileStructure::TYPE_STRING, 10, 11, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
 		$structure->setField('nomeServidor', FileStructure::TYPE_STRING, 21, 50, FileStructure::STRPAD_RIGHT_WITH_SPACES);
-		$structure->setField('estabelecimento', FileStructure::TYPE_INTEGER, 71, 3);
-		$structure->setField('orgao', FileStructure::TYPE_SRING, 74, 3);
+		$structure->setField('estabelecimento', FileStructure::TYPE_INTEGER, 71, 3, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
+		$structure->setField('orgao', FileStructure::TYPE_STRING, 74, 3, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
         $structure->setField('margem', FileStructure::TYPE_NUMBER, 77, 10, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
-        $structure->setField('dataNascimento', FileStructure::TYPE_DATE, 87, 8);
-        $structure->setField('dataAdmissao', FileStructure::TYPE_DATE, 97, 8);
-        $structure->setField('fimContrato', FileStructure::TYPE_DATE, 103, 8);
-        $structure->setField('regimeTrabalho', FileStructure::TYPE_STRING, 111, 40);
-        $structure->setField('localTrabalho', FileStructure::TYPE_STRING, 151, 40, FileStructure::STRPAD_RIGHT_WITH_SPACES);
-        $structure->setField('carteiraIdentidade', FileStructure::TYPE_STRING, 191, 15, FileStructure::STRPAD_RIGHT_WITH_SPACES);
+        $structure->setField('margemCartao', FileStructure::TYPE_NUMBER, 87, 10, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
+        $structure->setField('dataNascimento', FileStructure::TYPE_DATE, 97, 8);
+        $structure->setField('dataAdmissao', FileStructure::TYPE_DATE, 105, 8);
+        $structure->setField('dataFimContrato', FileStructure::TYPE_DATE, 113, 8, FileStructure::STRPAD_RIGHT_WITH_SPACES);
+        $structure->setField('regimeTrabalho', FileStructure::TYPE_STRING, 121, 40, FileStructure::STRPAD_RIGHT_WITH_SPACES);
+        $structure->setField('localTrabalho', FileStructure::TYPE_STRING, 161, 40, FileStructure::STRPAD_RIGHT_WITH_SPACES);
+        $structure->setField('carteiraIdentidade', FileStructure::TYPE_STRING, 201, 15, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
 		parent::__construct($structure);
 	}
 
@@ -106,6 +108,18 @@ Class FileMargin extends FileAbstract {
         return $this;
     }
 
+    public function getMargemCartao()
+    {
+        return $this->margemCartao;
+    }
+
+    public function setMargemCartao($margemCartao)
+    {
+        $this->margemCartao = $margemCartao;
+
+        return $this;
+    }
+
     public function getDataNascimento()
     {
         return $this->dataNascimento;
@@ -130,26 +144,26 @@ Class FileMargin extends FileAbstract {
         return $this;
     }
 
-    public function getFimContrato()
+    public function getDataFimContrato()
     {
-        return $this->fimContrato;
+        return $this->dataFimContrato;
     }
 
-    public function setFimContrato($fimContrato)
+    public function setDataFimContrato($dataFimContrato)
     {
-        $this->fimContrato = $fimContrato;
+        $this->dataFimContrato = $dataFimContrato;
 
         return $this;
     }
 
-    public function getRegineTrabalho()
+    public function getRegimeTrabalho()
     {
-        return $this->regineTrabalho;
+        return $this->regimeTrabalho;
     }
 
-    public function setRegineTrabalho($regineTrabalho)
+    public function setRegimeTrabalho($regimeTrabalho)
     {
-        $this->regineTrabalho = $regineTrabalho;
+        $this->regimeTrabalho = $regimeTrabalho;
 
         return $this;
     }
