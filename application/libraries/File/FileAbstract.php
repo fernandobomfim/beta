@@ -143,27 +143,27 @@ Class FileAbstract {
         switch ($structure->fieldPad) {
             case 'LEFT_ZERO':
                 #return str_pad($data, $structure->fieldSize, "0", STR_PAD_LEFT);
-                return $this->mb_str_pad($data, $structure->fieldSize, "0", STR_PAD_LEFT);
+                return $this->str_pad_unicode($data, $structure->fieldSize, "0", STR_PAD_LEFT);
                 break;
             case 'LEFT_SPACE':
                 #return str_pad($data, $structure->fieldSize, " ", STR_PAD_LEFT);
-            	return $this->mb_str_pad($data, $structure->fieldSize, " ", STR_PAD_LEFT);
+            	return $this->str_pad_unicode($data, $structure->fieldSize, " ", STR_PAD_LEFT);
                 break;
             case 'RIGHT_ZERO':
                 #return str_pad($data, $structure->fieldSize, "0", STR_PAD_RIGHT);
-            	return $this->mb_str_pad($data, $structure->fieldSize, "0", STR_PAD_RIGHT);
+            	return $this->str_pad_unicode($data, $structure->fieldSize, "0", STR_PAD_RIGHT);
                 break;
             case 'RIGHT_SPACE':
                 #return str_pad($data, $structure->fieldSize, " ", STR_PAD_RIGHT);
-                return $this->mb_str_pad($data, $structure->fieldSize, " ", STR_PAD_RIGHT);
+                return $this->str_pad_unicode($data, $structure->fieldSize, " ", STR_PAD_RIGHT);
                 break;
             case 'BOTH_ZERO':
                 #return str_pad($data, $structure->fieldSize, "0", STR_PAD_BOTH);
-                return $this->mb_str_pad($data, $structure->fieldSize, "0", STR_PAD_BOTH);
+                return $this->str_pad_unicode($data, $structure->fieldSize, "0", STR_PAD_BOTH);
                 break;
             case 'BOTH_SPACE':
                 #return str_pad($data, $structure->fieldSize, " ", STR_PAD_BOTH);
-            	return $this->mb_str_pad($data, $structure->fieldSize, " ", STR_PAD_BOTH);
+            	return $this->str_pad_unicode($data, $structure->fieldSize, " ", STR_PAD_BOTH);
                 break;
             default:
                 return NULL;
@@ -171,10 +171,36 @@ Class FileAbstract {
         }
     }
 
-    public function mb_str_pad( $input, $pad_length, $pad_string = ' ', $pad_type = STR_PAD_RIGHT)
-	{
-	    $diff = strlen( $input ) - mb_strlen( $input);
-	    return str_pad( $input, $pad_length + $diff, $pad_string, $pad_type );
+    static public function str_pad_unicode($str, $pad_len, $pad_str = ' ', $dir = STR_PAD_RIGHT)
+    {
+    	mb_internal_encoding('utf-8');
+
+	    $str_len = mb_strlen($str);
+	    $pad_str_len = mb_strlen($pad_str);
+	    if (!$str_len && ($dir == STR_PAD_RIGHT || $dir == STR_PAD_LEFT)) {
+	        $str_len = 1; // @debug
+	    }
+	    if (!$pad_len || !$pad_str_len || $pad_len <= $str_len) {
+	        return $str;
+	    }
+	    
+	    $result = null;
+	    $repeat = ceil($str_len - $pad_str_len + $pad_len);
+	    if ($dir == STR_PAD_RIGHT) {
+	        $result = $str . str_repeat($pad_str, $repeat);
+	        $result = mb_substr($result, 0, $pad_len);
+	    } else if ($dir == STR_PAD_LEFT) {
+	        $result = str_repeat($pad_str, $repeat) . $str;
+	        $result = mb_substr($result, -$pad_len);
+	    } else if ($dir == STR_PAD_BOTH) {
+	        $length = ($pad_len - $str_len) / 2;
+	        $repeat = ceil($length / $pad_str_len);
+	        $result = mb_substr(str_repeat($pad_str, $repeat), 0, floor($length)) 
+	                    . $str 
+	                       . mb_substr(str_repeat($pad_str, $repeat), 0, ceil($length));
+	    }
+	    
+	    return $result;
 	}
 
     public function dateToFile($date) {

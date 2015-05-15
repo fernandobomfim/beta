@@ -1,6 +1,7 @@
 <?php
 use application\libraries\Dbase\Dbase;
 use application\libraries\File\FileMargin;
+use application\libraries\File\FileHistory;
 
 class Files extends CI_Controller {
 
@@ -11,12 +12,17 @@ class Files extends CI_Controller {
 		$this->BIConfig = (object) $this->config->config['beta_informatica'];
 		$this->BIConfig->estabelecimento = 1;
 		$this->BIConfig->orgao = 2;
+
+		$this->load->helper('form_helper');
 	}
 
 	public function history()
 	{	
 		$this->load->model('File');
 		$history = $this->File->fetchAll('1');
+
+		$this->load->model('Dbf_evento', 'DBFEvento');
+		$data['eventos'] = $this->DBFEvento->fetchAllForSelectInput();
 
 		$data['files'] = $history;
 		$data['page'] = "history";
@@ -37,6 +43,15 @@ class Files extends CI_Controller {
 		if ($movger && count($movger)) {
 			$historyFile = new FileHistory;
 			foreach ($movger as $mov) {
+				/**
+				 * Filtro por Eventos
+				 */
+				if (!empty($this->input->post('evento'))) {
+					if (trim($mov->O_RENDIMEN) != (string)$this->input->post('evento')) {
+						continue;
+					}
+				}
+
 				$historyFile->setMatricula(trim($history[$mov->O_FUNCIONA]->F_MATRIC));
 				$historyFile->setCpf(trim($history[$mov->O_FUNCIONA]->F_CPF));
 				$historyFile->setNomeServidor(trim($history[$mov->O_FUNCIONA]->F_NOME));
@@ -89,6 +104,9 @@ class Files extends CI_Controller {
 		$margin = $this->File->fetchAll('2');
 		$data['files'] = $margin;
 
+		$this->load->model('Dbf_evento', 'DBFEvento');
+		$data['eventos'] = $this->DBFEvento->fetchAllForSelectInput();
+
 		$data['page'] = "margin";
 		$data['page_title'] = "Arquivos de Margem";
 		$data['page_icon'] = "fa-file-excel-o";
@@ -104,7 +122,6 @@ class Files extends CI_Controller {
 		$funcionarios = $this->DBFCadfun->fetchAll(TRUE);
 		$ficha = $this->DBFFichaf->fetchAll(TRUE);
 		$departamento = $this->DBFDepart->fetchAll(TRUE);
-		$eventoFicha = '0001';
 
 		$regime = array(
 			'10' => 'CELETISTA',
@@ -114,11 +131,19 @@ class Files extends CI_Controller {
 			'97' => 'CONTRATADO'
 		);
 
+		/**
+		 * Filtro por Eventos
+		 */
+		if (!empty($this->input->post('evento'))) {
+			$eventoFicha = $this->input->post('evento');
+		} else {
+			$this->message->add('Erro! Para gerar o arquivo de margem é necessário selecionar um evento!', 'error');
+			redirect('files/margin');
+		}
+
 		if ($funcionarios && count($funcionarios)) {
 			$marginFile = new FileMargin;
 			foreach ($funcionarios as $row) {
-				#var_dump(strlen("F60% - 1 A 5° TEC PEDAG").mb_strlen('F60% - 1 A 5° TEC PEDAG')); continue;
-				#var_dump( trim(utf8_encode($departamento[trim($row->F_CNTCUSTO)]->D_NOME)) ); continue;
 				$marginFile->setMatricula(trim($row->F_MATRIC));
 				$marginFile->setCpf(trim($row->F_CPF));
 				$marginFile->setNomeServidor(trim($row->F_NOME));
@@ -137,6 +162,8 @@ class Files extends CI_Controller {
 
 			$marginFile->createFile();
 			$fileRendered = $marginFile->renderFile(TRUE);
+
+			var_dump($fileRendered); die;
 
 			$path = 'uploads/arquivos/';
 			$basePath = realpath($path);
@@ -198,7 +225,6 @@ class Files extends CI_Controller {
 		$this->db->join('bi_files_types', 'type_id = file_type');
 		$this->db->where('file_id', $fileId);
 		$file = $this->db->get("bi_files");
-		var_dump($file);
 		if ($file->num_rows()) {
 			$this->load->helper('download');
 			$data = file_get_contents($file->row()->file_path);
@@ -206,6 +232,31 @@ class Files extends CI_Controller {
 		} else {
 			redirect();
 		}
+	}
 
+	public function delete($fileId = 0, $redirect = 'history')
+	{
+		if ((int)$fileId > 0) {
+			$this->db->trans_begin();
+			$this->db->where('file_id', $fileId);
+			$this->db->delete('bi_files');
+
+			if ($this->db->trans_status() === FALSE) {
+				$this->db->trans_rollback();
+				$this->message->add('Houve um erro ao excluir o arquivo $fileId!', 'error');
+			} else {
+				$this->db->trans_rollback();
+				$this->message->add('O arquivo $fileId foi excluído com sucesso!', 'success');
+			}
+		}
+
+		redirect('files/'.$redirect);
+	}
+
+	public function test()
+	{
+		$this->load->model('Dbf_evento', 'DBFEvento');
+		$eventos = $this->DBFEvento->fetchAllForSelectInput(TRUE);
+		var_dump($eventos);
 	}
 }

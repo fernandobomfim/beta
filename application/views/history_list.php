@@ -1,11 +1,23 @@
 <?php require('header.php');?>
   
-  <div class="row">
-    <div class="col-md-12">
-      <a class="btn btn-primary pull-right" href="<?php echo site_url('files/createHistoryFile')?>">Gerar Arquivo de Histórico</a>
+  <?php $this->message->get();?>
+
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div class="col-md-12">
+        <h4 class="pull-left">FILTROS</h4>
+        <form class="form-inline pull-right" action='<?php echo site_url('files/createHistoryFile')?>' method="POST">
+          <div class="form-group">
+            <label for="evento">EVENTO: </label>
+            <?php
+              echo form_dropdown("evento", $eventos, '', 'id="evento" class="form-control" style="height:40px"');
+            ?>
+          </div>
+          <button type="submit" class="btn btn-primary">Gerar Arquivo de Histórico</button>
+        </form>
+      </div>
     </div>
   </div>
-  <br>
 
   <div class="row row-stat">
       <div class="col-md-12">
