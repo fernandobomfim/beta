@@ -86,6 +86,7 @@ class Configuracoes extends CI_Controller {
 				$this->session->set_userdata('orgao', $config->row());
 			}
 		}
+
 		redirect('');
 	}
 

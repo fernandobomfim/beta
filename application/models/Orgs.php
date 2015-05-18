@@ -6,8 +6,8 @@ Class Orgs extends CI_Model {
 	public function __construct()
 	{
 		parent::__construct();
-		$session = $this->session->userdata('orgao');
-		if (!isset($session->orgao_id) || empty($session->orgao_id)) {
+		$session = $this->session->userdata('orgao'); 
+		if (!isset($session->org_id) || empty($session->org_id)) {
 			$orgaos = $this->fetchAll();
 			$this->session->set_userdata('orgao', $orgaos[0]);
 		}

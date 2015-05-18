@@ -43,6 +43,13 @@ class Files extends CI_Controller {
 			$historyFile = new FileHistory;
 			foreach ($movger as $mov) {
 				/**
+				 * Filtro por Órgao e Estabelecimento
+				 */
+				if (trim($history[$mov->O_FUNCIONA]->F_CNTCUSTO) <> $this->BIConfig->orgao->org_code){
+					continue;
+				}
+				
+				/**
 				 * Filtro por Eventos
 				 */
 				if (!empty($this->input->post('evento'))) {
@@ -50,7 +57,7 @@ class Files extends CI_Controller {
 						continue;
 					}
 				}
-
+				
 				$historyFile->setMatricula(trim($history[$mov->O_FUNCIONA]->F_MATRIC));
 				$historyFile->setCpf(trim($history[$mov->O_FUNCIONA]->F_CPF));
 				$historyFile->setNomeServidor(trim($history[$mov->O_FUNCIONA]->F_NOME));
@@ -66,6 +73,7 @@ class Files extends CI_Controller {
 			
 			$historyFile->createFile();
 			$fileRendered = $historyFile->renderFile(TRUE);
+			echo "<pre>".$fileRendered; die;
 
 			$path = 'uploads/arquivos/';
 			$basePath = realpath($path);
@@ -222,6 +230,7 @@ class Files extends CI_Controller {
 		$this->db->join('bi_files_types', 'type_id = file_type');
 		$this->db->where('file_id', $fileId);
 		$file = $this->db->get("bi_files");
+		var_dump($file); die; 
 		if ($file->num_rows()) {
 			$this->load->helper('download');
 			$data = file_get_contents($file->row()->file_path);
