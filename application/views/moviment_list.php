@@ -12,7 +12,7 @@
               echo form_upload("evento", '', 'id="evento" class="form-control" style="height:40px"');
             ?>
           </div>
-          <button type="submit" class="btn btn-primary" disabled="disabled">Upload de Arquivo de Retorno</button>
+          <button type="submit" class="btn btn-primary" disabled="disabled">Upload de Arquivo de Movimento</button>
         </form>
       </div>
     </div>

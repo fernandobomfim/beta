@@ -10,8 +10,7 @@ class Files extends CI_Controller {
 		
 		$this->load->config('beta_informatica', TRUE);
 		$this->BIConfig = (object) $this->config->config['beta_informatica'];
-		$this->BIConfig->estabelecimento = 1;
-		$this->BIConfig->orgao = 2;
+		$this->BIConfig->orgao = $this->session->userdata('orgao');
 
 		$this->load->helper('form_helper');
 	}
@@ -55,8 +54,8 @@ class Files extends CI_Controller {
 				$historyFile->setMatricula(trim($history[$mov->O_FUNCIONA]->F_MATRIC));
 				$historyFile->setCpf(trim($history[$mov->O_FUNCIONA]->F_CPF));
 				$historyFile->setNomeServidor(trim($history[$mov->O_FUNCIONA]->F_NOME));
-				$historyFile->setEstabelecimento('');
-				$historyFile->setOrgao('');
+				$historyFile->setEstabelecimento($this->BIConfig->orgao->org_establishment_code);
+				$historyFile->setOrgao($this->BIConfig->orgao->org_id);
 				$historyFile->setCodigoDesconto(trim($mov->O_RENDIMEN));
 				$historyFile->setPrazoTotal(trim($mov->O_TOTPARCF));
 				$historyFile->setNumeroParcelasPagas(trim($mov->O_QTDPARCF));
@@ -147,8 +146,8 @@ class Files extends CI_Controller {
 				$marginFile->setMatricula(trim($row->F_MATRIC));
 				$marginFile->setCpf(trim($row->F_CPF));
 				$marginFile->setNomeServidor(trim($row->F_NOME));
-				$marginFile->setEstabelecimento($this->BIConfig->estabelecimento);
-				$marginFile->setOrgao($this->BIConfig->orgao);
+				$marginFile->setEstabelecimento($this->BIConfig->orgao->org_establishment_code);
+                                $marginFile->setOrgao($this->BIConfig->orgao->org_id);
 				$marginFile->setMargem(isset($ficha[trim($row->F_MATRIC)][$eventoFicha]) ? $ficha[trim($row->F_MATRIC)][$eventoFicha]->A_VAL01 : '');
 				$marginFile->setMargemCartao(isset($ficha[trim($row->F_MATRIC)][$eventoFicha]) ? number_format($ficha[trim($row->F_MATRIC)][$eventoFicha]->A_VAL01/3, 2) : '');
 				$marginFile->setDataNascimento($marginFile->dateToFile($row->F_DATANASC));
@@ -162,8 +161,6 @@ class Files extends CI_Controller {
 
 			$marginFile->createFile();
 			$fileRendered = $marginFile->renderFile(TRUE);
-
-			var_dump($fileRendered); die;
 
 			$path = 'uploads/arquivos/';
 			$basePath = realpath($path);
@@ -206,7 +203,7 @@ class Files extends CI_Controller {
 		$data['page'] = "moviment";
 		$data['page_title'] = "Arquivos de Movimento";
 		$data['page_icon'] = "fa-file-excel-o";
-		$this->load->view('margin_list', $data);
+		$this->load->view('moviment_list', $data);
 	}
 
 	public function returns()
@@ -218,7 +215,7 @@ class Files extends CI_Controller {
 		$data['page'] = "return";
 		$data['page_title'] = "Arquivos de Retorno";
 		$data['page_icon'] = "fa-file-excel-o";
-		$this->load->view('margin_list', $data);
+		$this->load->view('returns_list', $data);
 	}
 
 	public function download($fileId) {

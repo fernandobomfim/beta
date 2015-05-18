@@ -32,9 +32,15 @@
                 </div>
             </div>
             
-            <!-- <div class="header-right">
+            <div class="header-right">
                 <div class="pull-right">
-                    <div class="btn-group btn-group-option">
+                    <form class="form-inline pull-right" action='<?php echo site_url('configuracoes/setconfig')?>' method="POST">
+                        <?php
+                        echo form_dropdown("orgao_id", $this->Orgs->fetchAllForSelectInput(), $this->session->userdata('orgao')->org_id, 'id="orgao_id" class="form-control" style="height:27px"');
+                        ?>
+                        <button type="submit" class="btn btn-xs btn-danger"><i class="fa fa-cog"> Alterar Órgão</i></button>
+                    </form>
+                    <!-- <div class="btn-group btn-group-option">
                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                           <i class="fa fa-caret-down"></i>
                         </button>
@@ -43,9 +49,9 @@
                           <li class="divider"></li>
                           <li><a href="#"><i class="glyphicon glyphicon-log-out"></i>Sair</a></li>
                         </ul>
-                    </div>
+                    </div> -->
                 </div>
-            </div> -->
+            </div> 
         </div>
     </header>
         
@@ -69,6 +75,7 @@
                     <li class="<?php menu_active('margin', $page); ?>"><a href="<?php echo site_url('files/margin')?>"><i class="fa fa-file-excel-o"></i> <span>Arquivos de Margem</span></a>
                     <li class="<?php menu_active('moviment', $page); ?>"><a href="<?php echo site_url('files/moviment')?>"><i class="fa fa-file-excel-o"></i> <span>Arquivos de Movimento</span></a>
                     <li class="<?php menu_active('return', $page); ?>"><a href="<?php echo site_url('files/returns')?>"><i class="fa fa-file-excel-o"></i> <span>Arquivos de Retorno</span></a></li>
+                    <li class="<?php menu_active('configuracoes', $page); ?>"><a href="<?php echo site_url('configuracoes')?>"><i class="fa fa-cog"></i> <span>Configurações</span></a></li>
                 </ul>
                 
             </div><!-- leftpanel -->

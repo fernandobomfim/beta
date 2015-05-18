@@ -20,8 +20,8 @@ Class FileHistory extends FileAbstract {
 		$structure->setField('matricula', FileStructure::TYPE_INTEGER, 0, 10, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
 		$structure->setField('cpf', FileStructure::TYPE_STRING, 10, 11);
 		$structure->setField('nomeServidor', FileStructure::TYPE_STRING, 21, 50, FileStructure::STRPAD_RIGHT_WITH_SPACES);
-		$structure->setField('estabelecimento', FileStructure::TYPE_STRING, 71, 3);
-        $structure->setField('orgao', FileStructure::TYPE_STRING, 74, 3);
+		$structure->setField('estabelecimento', FileStructure::TYPE_STRING, 71, 3, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
+	        $structure->setField('orgao', FileStructure::TYPE_STRING, 74, 3, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
 		$structure->setField('codigoDesconto', FileStructure::TYPE_STRING, 77, 3);
         $structure->setField('prazoTotal', FileStructure::TYPE_INTEGER, 80, 3, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
         $structure->setField('numeroParcelasPagas', FileStructure::TYPE_INTEGER, 83, 8, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
