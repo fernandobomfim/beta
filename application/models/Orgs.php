@@ -1,5 +1,5 @@
 <?php
-Class Orgs extends CI_Model {
+class Orgs extends CI_Model {
 
 	private $_table = 'bi_orgs';
 
@@ -9,7 +9,9 @@ Class Orgs extends CI_Model {
 		$session = $this->session->userdata('orgao'); 
 		if (!isset($session->org_id) || empty($session->org_id)) {
 			$orgaos = $this->fetchAll();
-			$this->session->set_userdata('orgao', $orgaos[0]);
+			if ($orgaos && count($orgaos)) {
+				$this->session->set_userdata('orgao', $orgaos[0]);
+			}
 		}
 	}
 
