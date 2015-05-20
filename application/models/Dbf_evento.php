@@ -42,7 +42,7 @@ Class Dbf_evento extends CI_Model {
 
 	public function fetchAllForSelectInput()
 	{
-		$array = array('' => '-- Selecione um evento --');
+		$array = array();
 		$eventos = $this->fetchAll(TRUE);
 		foreach ($eventos as $key => $value) {
 			$array[$key] = iconv("Windows-1252", "UTF-8", $value->R_CODIGO.' - '.trim($value->R_NOME));

@@ -16,6 +16,7 @@
                 <th style="width:130px">CÓDIGO ORGÃO</th>
                 <th style="width:50px">ESTABELECIMENTO</th>
                 <th style="width:150px">DATA DE CADASTRO</th>
+                <th>FILEPATH</th>
               </tr>
             </thead>
             <tbody>
@@ -28,6 +29,7 @@
                 <td><?php echo $row->org_code?></td>
                 <td><?php echo $row->org_establishment_code?></td>
                 <td><?php echo date('d/m/Y H:i:s', strtotime($row->org_date))?></td>
+                <td><?php echo $row->org_basepath?></td>
                 <!-- <td class="text-right">
                   <a href="<?php echo site_url('files/download/'.$row->org_id)?>"><i class="fa fa-download"></i></a>
                 </th> -->

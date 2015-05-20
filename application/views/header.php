@@ -35,13 +35,15 @@
             <div class="header-right">
                 <div class="pull-right">
                     <form class="form-inline pull-right" action='<?php echo site_url('configuracoes/setconfig')?>' method="POST">
+                        <div class="form-group">
                         <?php
 			$orgaosSelect = $this->Orgs->fetchAllForSelectInput();
 			if ($orgaosSelect && count($orgaosSelect)):
-                        echo form_dropdown("orgao_id", $orgaosSelect, $this->session->userdata('orgao')->org_id, 'id="orgao_id" class="form-control" style="height:27px"');
+                        echo form_dropdown("orgao_id", $orgaosSelect, $this->session->userdata('orgao')->org_id, 'id="orgao_id"  class="form-control" style="height:37px"');
                         endif;
-			?>
-                        <button type="submit" class="btn btn-xs btn-danger"><i class="fa fa-cog"> Alterar Órgão</i></button>
+			?>           
+                        </div>
+                        <button type="submit" class="btn btn-danger"><i class="fa fa-cog"> Alterar Órgão</i></button>
                     </form>
                     <!-- <div class="btn-group btn-group-option">
                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">

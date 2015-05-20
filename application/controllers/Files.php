@@ -40,6 +40,8 @@ class Files extends CI_Controller {
 		$config = $this->DBFConfig->fetchAll();
 
 		$filtroEvento = $this->input->post('evento');
+		$filtroEventos = $this->input->post('eventos');
+		#var_dump($filtroEventos); die;
 		$count = 0;
 
 		if ($movger && count($movger)) {
@@ -62,7 +64,7 @@ class Files extends CI_Controller {
 				 * Filtro por Eventos
 				 */
 				if ($filtroEvento) {	
-					if (trim($mov->O_RENDIMEN) <> $filtroEvento) {
+					if (!in_array(trim($mov->O_RENDIMEN), $filtroEventos)) {
 						continue;
 					}
 				}
@@ -98,6 +100,9 @@ class Files extends CI_Controller {
 						$fileInfo['file_type'] = '1';
 						$fileInfo['file_upload_date'] = date('Y-m-d H:i:s');
 						$fileInfo['file_path'] = $path.$fileName;
+						$fileInfo['file_org_id'] = $this->BIConfig->orgao->org_id;
+						$fileInfo['file_org_name'] = $this->BIConfig->orgao->org_name;
+						$fileInfo['file_filter_serialized'] = implode(', ', $this->input->post('eventos'));
 						$this->db->insert('bi_files', $fileInfo);
 						if ($this->db->trans_status() === FALSE) {
 							$this->db->trans_rollback();
@@ -139,8 +144,10 @@ class Files extends CI_Controller {
 		$this->load->model('DBF_depart', 'DBFDepart');
 
 		$funcionarios = $this->DBFCadfun->fetchAll(TRUE);
-		$ficha = $this->DBFFichaf->fetchAll(TRUE);
+		$ficha = $this->DBFFichaf->fetchAll();
 		$departamento = $this->DBFDepart->fetchAll(TRUE);
+
+		#var_dump($ficha); die;
 		
 		if (!count($funcionarios)) {
 			$this->message->add('Nenhum registro encontrado no arquivo CADFUN.DBF.','error');
@@ -156,46 +163,84 @@ class Files extends CI_Controller {
 		);
 
 		/**
-		 * Filtro por Eventos
+		 * Checa Filtro por Eventos
 		 */
-		if (!empty($this->input->post('evento'))) {
-			$eventoFicha = $this->input->post('evento');
-		} else {
+		$filtroEventos = $this->input->post('eventos');
+		if (!is_array($filtroEventos) OR !count($filtroEventos)) {
 			$this->message->add('Erro! Para gerar o arquivo de margem é necessário selecionar um evento!', 'error');
 			redirect('files/margin');
 		}
 
-		if ($funcionarios && count($funcionarios)) {
+		if ($ficha && count($ficha)) {
 			$marginFile = new FileMargin;
-			foreach ($funcionarios as $row) {
 
-				$funcionarioMatricula = trim($row->F_MATRIC);
+			foreach ($ficha as $row) {
+
+				$funcionarioMatricula = trim($row->A_FUNCIONA);
+				$evento = trim($row->A_RENDIMEN);
+
+				/**
+				 * Filtro por Eventos
+				 */
+				if (!in_array($evento, $filtroEventos)) {
+					continue;
+				}
 
 				/**
 				 * Filtro por Órgao e Estabelecimento
 				 */
-				if (trim($row->F_CNTCUSTO) <> $this->BIConfig->orgao->org_code){
+				if (trim($funcionarios[$funcionarioMatricula]->F_CNTCUSTO) <> $this->BIConfig->orgao->org_code){
 					continue;
 				}
 
 				$marginFile->setMatricula($funcionarioMatricula);
-				$marginFile->setCpf(trim($row->F_CPF));
-				$marginFile->setNomeServidor(trim($row->F_NOME));
+				$marginFile->setCpf(trim($funcionarios[$funcionarioMatricula]->F_CPF));
+				$marginFile->setNomeServidor(trim($funcionarios[$funcionarioMatricula]->F_NOME));
 				$marginFile->setEstabelecimento($this->BIConfig->orgao->org_establishment_code);
 				$marginFile->setOrgao($this->BIConfig->orgao->org_id);
-				$marginFile->setMargem(isset($ficha[$funcionarioMatricula][$eventoFicha]) ? $ficha[trim($row->F_MATRIC)][$eventoFicha]->A_VAL01 : '');
-				$marginFile->setMargemCartao(isset($ficha[$funcionarioMatricula][$eventoFicha]) ? number_format($ficha[trim($row->F_MATRIC)][$eventoFicha]->A_VAL01/3, 2) : '');
-				$marginFile->setDataNascimento($marginFile->dateToFile($row->F_DATANASC));
-				$marginFile->setDataAdmissao($marginFile->dateToFile($row->F_ADMISSAO));
-				$marginFile->setDataFimContrato(empty(trim($row->F_DTFIMCTA)) ? '' : $marginFile->dateToFile($row->F_DTFIMCTA));
-				$marginFile->setRegimeTrabalho($regime[trim($row->F_VINCULO)]);
-				$marginFile->setLocalTrabalho(utf8_encode(trim($departamento[trim($row->F_CNTCUSTO)]->D_NOME)));
-				$marginFile->setCarteiraIdentidade(trim($row->F_IDENTIDA).trim($row->F_CI_UF));
+				$marginFile->setMargem(isset($ficha[$funcionarioMatricula][$evento]) ? $ficha[$funcionarioMatricula][$evento]->A_VAL01 : '');
+				$marginFile->setMargemCartao(isset($ficha[$funcionarioMatricula][$evento]) ? number_format($ficha[$funcionarioMatricula][$evento]->A_VAL01/3, 2) : '');
+				$marginFile->setDataNascimento($marginFile->dateToFile($funcionarios[$funcionarioMatricula]->F_DATANASC));
+				$marginFile->setDataAdmissao($marginFile->dateToFile($funcionarios[$funcionarioMatricula]->F_ADMISSAO));
+				$marginFile->setDataFimContrato(empty(trim($funcionarios[$funcionarioMatricula]->F_DTFIMCTA)) ? '' : $marginFile->dateToFile($funcionarios[$funcionarioMatricula]->F_DTFIMCTA));
+				$marginFile->setRegimeTrabalho($regime[trim($funcionarios[$funcionarioMatricula]->F_VINCULO)]);
+				$marginFile->setLocalTrabalho(utf8_encode(trim($departamento[trim($funcionarios[$funcionarioMatricula]->F_CNTCUSTO)]->D_NOME)));
+				$marginFile->setCarteiraIdentidade(trim($funcionarios[$funcionarioMatricula]->F_IDENTIDA).trim($funcionarios[$funcionarioMatricula]->F_CI_UF));
 				$marginFile->attachIntoCollection($marginFile);
 			}
 
+			// foreach ($funcionarios as $row) {
+
+			// 	$funcionarioMatricula = trim($row->F_MATRIC);
+
+			// 	/**
+			// 	 * Filtro por Órgao e Estabelecimento
+			// 	 */
+			// 	if (trim($row->F_CNTCUSTO) <> $this->BIConfig->orgao->org_code){
+			// 		continue;
+			// 	}
+
+			// 	$marginFile->setMatricula($funcionarioMatricula);
+			// 	$marginFile->setCpf(trim($row->F_CPF));
+			// 	$marginFile->setNomeServidor(trim($row->F_NOME));
+			// 	$marginFile->setEstabelecimento($this->BIConfig->orgao->org_establishment_code);
+			// 	$marginFile->setOrgao($this->BIConfig->orgao->org_id);
+			// 	$marginFile->setMargem(isset($ficha[$funcionarioMatricula][$eventoFicha]) ? $ficha[trim($row->F_MATRIC)][$eventoFicha]->A_VAL01 : '');
+			// 	$marginFile->setMargemCartao(isset($ficha[$funcionarioMatricula][$eventoFicha]) ? number_format($ficha[trim($row->F_MATRIC)][$eventoFicha]->A_VAL01/3, 2) : '');
+			// 	$marginFile->setDataNascimento($marginFile->dateToFile($row->F_DATANASC));
+			// 	$marginFile->setDataAdmissao($marginFile->dateToFile($row->F_ADMISSAO));
+			// 	$marginFile->setDataFimContrato(empty(trim($row->F_DTFIMCTA)) ? '' : $marginFile->dateToFile($row->F_DTFIMCTA));
+			// 	$marginFile->setRegimeTrabalho($regime[trim($row->F_VINCULO)]);
+			// 	$marginFile->setLocalTrabalho(utf8_encode(trim($departamento[trim($row->F_CNTCUSTO)]->D_NOME)));
+			// 	$marginFile->setCarteiraIdentidade(trim($row->F_IDENTIDA).trim($row->F_CI_UF));
+			// 	$marginFile->attachIntoCollection($marginFile);
+			// }
+
 			$marginFile->createFile();
 			$fileRendered = $marginFile->renderFile(TRUE);
+
+			echo "<pre>";
+			print_r($fileRendered); die;
 			
 			if (empty($fileRendered)) {
 				$this->message->add('Nenhum registro encontrado. Verifique o filtro selecionado.', 'error');
@@ -213,6 +258,9 @@ class Files extends CI_Controller {
 						$fileInfo['file_type'] = '2';
 						$fileInfo['file_upload_date'] = date('Y-m-d H:i:s');
 						$fileInfo['file_path'] = $path.$fileName;
+						$fileInfo['file_org_id'] = $this->BIConfig->orgao->org_id;
+						$fileInfo['file_org_name'] = $this->BIConfig->orgao->org_name;
+						$fileInfo['file_filter_serialized'] = $this->input->post('evento');
 						$this->db->insert('bi_files', $fileInfo);
 						if ($this->db->trans_status() === FALSE) {
 							$this->db->trans_rollback();
