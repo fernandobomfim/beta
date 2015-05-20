@@ -38,22 +38,20 @@ class Files extends CI_Controller {
 		$history = $this->DBFCadfun->fetchAll(TRUE);
 		$movger = $this->DBFMovger->fetchAll();
 		$config = $this->DBFConfig->fetchAll();
-		foreach($history AS $roww) {
-			echo '<pre>';
-			#print_r($roww);
-			if (trim($roww->F_CNTCUSTO) == '98') {
-				print_r($roww->F_NOME);
-			}
-		} die;
+
+		$filtroEvento = $this->input->post('evento');
+		$count = 0;
 
 		if ($movger && count($movger)) {
 			$historyFile = new FileHistory;
 			foreach ($movger as $mov) {
+				$funcionarioMatricula = trim($mov->O_FUNCIONA);
+
 				/**
 				 * Filtro por Órgao e Estabelecimento
 				 */
-				if (isset($history[trim($mov->O_FUNCIONA)])) {
-					if (trim($history[trim($mov->O_FUNCIONA)]->F_CNTCUSTO) <> $this->BIConfig->orgao->org_code){
+				if (isset($history[$funcionarioMatricula])) {
+					if (trim($history[$funcionarioMatricula]->F_CNTCUSTO) <> $this->BIConfig->orgao->org_code){
 						continue;
 					}
 				} else {
@@ -63,15 +61,15 @@ class Files extends CI_Controller {
 				/**
 				 * Filtro por Eventos
 				 */
-				if (!empty($this->input->post('evento'))) {
-					if (trim($mov->O_RENDIMEN) != (string)$this->input->post('evento')) {
+				if ($filtroEvento) {	
+					if (trim($mov->O_RENDIMEN) <> $filtroEvento) {
 						continue;
 					}
 				}
 				
-				$historyFile->setMatricula(trim($history[trim($mov->O_FUNCIONA)]->F_MATRIC));
-				$historyFile->setCpf(trim($history[$mov->O_FUNCIONA]->F_CPF));
-				$historyFile->setNomeServidor(trim($history[$mov->O_FUNCIONA]->F_NOME));
+				$historyFile->setMatricula(trim($funcionarioMatricula));
+				$historyFile->setCpf(trim($history[$funcionarioMatricula]->F_CPF));
+				$historyFile->setNomeServidor(trim($history[$funcionarioMatricula]->F_NOME));
 				$historyFile->setEstabelecimento($this->BIConfig->orgao->org_establishment_code);
 				$historyFile->setOrgao($this->BIConfig->orgao->org_id);
 				$historyFile->setCodigoDesconto(trim($mov->O_RENDIMEN));
@@ -170,13 +168,23 @@ class Files extends CI_Controller {
 		if ($funcionarios && count($funcionarios)) {
 			$marginFile = new FileMargin;
 			foreach ($funcionarios as $row) {
-				$marginFile->setMatricula(trim($row->F_MATRIC));
+
+				$funcionarioMatricula = trim($row->F_MATRIC);
+
+				/**
+				 * Filtro por Órgao e Estabelecimento
+				 */
+				if (trim($row->F_CNTCUSTO) <> $this->BIConfig->orgao->org_code){
+					continue;
+				}
+
+				$marginFile->setMatricula($funcionarioMatricula);
 				$marginFile->setCpf(trim($row->F_CPF));
 				$marginFile->setNomeServidor(trim($row->F_NOME));
 				$marginFile->setEstabelecimento($this->BIConfig->orgao->org_establishment_code);
-                                $marginFile->setOrgao($this->BIConfig->orgao->org_id);
-				$marginFile->setMargem(isset($ficha[trim($row->F_MATRIC)][$eventoFicha]) ? $ficha[trim($row->F_MATRIC)][$eventoFicha]->A_VAL01 : '');
-				$marginFile->setMargemCartao(isset($ficha[trim($row->F_MATRIC)][$eventoFicha]) ? number_format($ficha[trim($row->F_MATRIC)][$eventoFicha]->A_VAL01/3, 2) : '');
+				$marginFile->setOrgao($this->BIConfig->orgao->org_id);
+				$marginFile->setMargem(isset($ficha[$funcionarioMatricula][$eventoFicha]) ? $ficha[trim($row->F_MATRIC)][$eventoFicha]->A_VAL01 : '');
+				$marginFile->setMargemCartao(isset($ficha[$funcionarioMatricula][$eventoFicha]) ? number_format($ficha[trim($row->F_MATRIC)][$eventoFicha]->A_VAL01/3, 2) : '');
 				$marginFile->setDataNascimento($marginFile->dateToFile($row->F_DATANASC));
 				$marginFile->setDataAdmissao($marginFile->dateToFile($row->F_ADMISSAO));
 				$marginFile->setDataFimContrato(empty(trim($row->F_DTFIMCTA)) ? '' : $marginFile->dateToFile($row->F_DTFIMCTA));

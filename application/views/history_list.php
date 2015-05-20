@@ -1,6 +1,17 @@
 <?php require('header.php');?>
-  
-  <?php $this->message->get();?>
+
+  <?php 
+    $mensagem = $this->message->get(true);
+    if (!empty($mensagem)):
+  ?>
+  <div class="row">
+    <div class="col-md-12">
+      <?php echo $mensagem; ?>
+    </div>
+  </div>
+  <?php 
+    endif;
+  ?>
 
   <div class="panel panel-default">
     <div class="panel-body">

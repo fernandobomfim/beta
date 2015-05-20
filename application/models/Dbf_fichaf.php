@@ -14,7 +14,7 @@ Class DBF_fichaf extends CI_Model {
 
 	public function fetchAll($formated = FALSE)
 	{
-		$arquivo = realpath($this->BIConfig->orgao->org_basepath."fichaf.dbf");
+		$arquivo = realpath($this->BIConfig->orgao->org_basepath."FICHAF.DBF");
 		$dbase = new Dbase();
 		$dbase->setFile($arquivo);
 		$dbase->open();
