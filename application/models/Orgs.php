@@ -18,7 +18,8 @@ class Orgs extends CI_Model {
 	public function fetchAll()
 	{
 		$this->db->order_by('org_name', 'ASC');
-		return $this->db->get($this->_table)->result();
+		$return = $this->db->get($this->_table)->result();
+		return $return;
 	}
 
 	public function fetchAllForSelectInput()

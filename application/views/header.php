@@ -36,8 +36,11 @@
                 <div class="pull-right">
                     <form class="form-inline pull-right" action='<?php echo site_url('configuracoes/setconfig')?>' method="POST">
                         <?php
-                        echo form_dropdown("orgao_id", $this->Orgs->fetchAllForSelectInput(), $this->session->userdata('orgao')->org_id, 'id="orgao_id" class="form-control" style="height:27px"');
-                        ?>
+			$orgaosSelect = $this->Orgs->fetchAllForSelectInput();
+			if ($orgaosSelect && count($orgaosSelect)):
+                        echo form_dropdown("orgao_id", $orgaosSelect, $this->session->userdata('orgao')->org_id, 'id="orgao_id" class="form-control" style="height:27px"');
+                        endif;
+			?>
                         <button type="submit" class="btn btn-xs btn-danger"><i class="fa fa-cog"> Alterar Órgão</i></button>
                     </form>
                     <!-- <div class="btn-group btn-group-option">

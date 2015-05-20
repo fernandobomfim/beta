@@ -10,11 +10,12 @@ Class Dbf_evento extends CI_Model {
 
 		$this->load->config('beta_informatica', TRUE);
 		$this->BIConfig = (object) $this->config->config['beta_informatica'];
+		$this->BIConfig->orgao = $this->session->userdata('orgao');
 	}
 
 	public function fetchAll($formated = FALSE)
 	{
-		$arquivo = realpath($this->BIConfig->diretorio_arquivos_dbf."EVENTO.DBF");
+		$arquivo = realpath($this->BIConfig->orgao->org_basepath."EVENTO.DBF");
 		$dbase = new Dbase();
 		$dbase->setFile($arquivo);
 		$dbase->open();

@@ -36,8 +36,15 @@ class Files extends CI_Controller {
 		$this->load->model('DBF_config', 'DBFConfig');
 
 		$history = $this->DBFCadfun->fetchAll(TRUE);
-		$movger = $this->DBFMovger->fetchAll(TRUE);
+		$movger = $this->DBFMovger->fetchAll();
 		$config = $this->DBFConfig->fetchAll();
+		foreach($history AS $roww) {
+			echo '<pre>';
+			#print_r($roww);
+			if (trim($roww->F_CNTCUSTO) == '98') {
+				print_r($roww->F_NOME);
+			}
+		} die;
 
 		if ($movger && count($movger)) {
 			$historyFile = new FileHistory;
@@ -45,7 +52,11 @@ class Files extends CI_Controller {
 				/**
 				 * Filtro por Órgao e Estabelecimento
 				 */
-				if (trim($history[$mov->O_FUNCIONA]->F_CNTCUSTO) <> $this->BIConfig->orgao->org_code){
+				if (isset($history[trim($mov->O_FUNCIONA)])) {
+					if (trim($history[trim($mov->O_FUNCIONA)]->F_CNTCUSTO) <> $this->BIConfig->orgao->org_code){
+						continue;
+					}
+				} else {
 					continue;
 				}
 				
@@ -58,7 +69,7 @@ class Files extends CI_Controller {
 					}
 				}
 				
-				$historyFile->setMatricula(trim($history[$mov->O_FUNCIONA]->F_MATRIC));
+				$historyFile->setMatricula(trim($history[trim($mov->O_FUNCIONA)]->F_MATRIC));
 				$historyFile->setCpf(trim($history[$mov->O_FUNCIONA]->F_CPF));
 				$historyFile->setNomeServidor(trim($history[$mov->O_FUNCIONA]->F_NOME));
 				$historyFile->setEstabelecimento($this->BIConfig->orgao->org_establishment_code);
@@ -73,7 +84,10 @@ class Files extends CI_Controller {
 			
 			$historyFile->createFile();
 			$fileRendered = $historyFile->renderFile(TRUE);
-			echo "<pre>".$fileRendered; die;
+			if (empty($fileRendered)) {
+				$this->message->add('Nenhum registro foi gerado! Verifique o filtro selecionado.', 'error');
+				redirect('files/history');
+			}
 
 			$path = 'uploads/arquivos/';
 			$basePath = realpath($path);
@@ -129,6 +143,11 @@ class Files extends CI_Controller {
 		$funcionarios = $this->DBFCadfun->fetchAll(TRUE);
 		$ficha = $this->DBFFichaf->fetchAll(TRUE);
 		$departamento = $this->DBFDepart->fetchAll(TRUE);
+		
+		if (!count($funcionarios)) {
+			$this->message->add('Nenhum registro encontrado no arquivo CADFUN.DBF.','error');
+			redirect('files/margin');	
+		}
 
 		$regime = array(
 			'10' => 'CELETISTA',
@@ -169,6 +188,11 @@ class Files extends CI_Controller {
 
 			$marginFile->createFile();
 			$fileRendered = $marginFile->renderFile(TRUE);
+			
+			if (empty($fileRendered)) {
+				$this->message->add('Nenhum registro encontrado. Verifique o filtro selecionado.', 'error');
+				redirect('files/margin');
+			}
 
 			$path = 'uploads/arquivos/';
 			$basePath = realpath($path);
@@ -230,7 +254,6 @@ class Files extends CI_Controller {
 		$this->db->join('bi_files_types', 'type_id = file_type');
 		$this->db->where('file_id', $fileId);
 		$file = $this->db->get("bi_files");
-		var_dump($file); die; 
 		if ($file->num_rows()) {
 			$this->load->helper('download');
 			$data = file_get_contents($file->row()->file_path);
