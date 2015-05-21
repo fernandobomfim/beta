@@ -39,6 +39,10 @@ class Files extends CI_Controller {
 		$movger = $this->DBFMovger->fetchAll();
 		$config = $this->DBFConfig->fetchAll();
 
+		// if (!count($history)) {
+			
+		// }
+
 		$filtroEventos = $this->input->post('eventos');
 		$count = 0;
 
@@ -51,13 +55,13 @@ class Files extends CI_Controller {
 				/**
 				 * Filtro por Órgao e Estabelecimento
 				 */
-				if (isset($history[$funcionarioMatricula])) {
-					if (trim($history[$funcionarioMatricula]->F_CNTCUSTO) <> $this->BIConfig->orgao->org_code){
-						continue;
-					}
-				} else {
-					continue;
-				}
+				// if (isset($history[$funcionarioMatricula])) {
+				// 	if (trim($history[$funcionarioMatricula]->F_CNTCUSTO) <> $this->BIConfig->orgao->org_code){
+				// 		continue;
+				// 	}
+				// } else {
+				// 	continue;
+				// }
 				
 				/**
 				 * Filtro por Eventos
@@ -67,17 +71,25 @@ class Files extends CI_Controller {
 						continue;
 					}
 				}
+
+				$totalParcelas = trim($mov->O_TOTPARCF);
+				$parcelaAtual = trim($mov->O_QTDPARCF);
+				$numeroParcelaPagas = ($totalParcelas-$parcelaAtual)+1;
+				$dataInclusaoDesconto = strtotime(trim($config[0]->INI_FOLHA));
+				$dataInclusaoDesconto = date_create(date('Y-m-d', $dataInclusaoDesconto));
+				$dataInclusaoDesconto = date_sub($dataInclusaoDesconto, date_interval_create_from_date_string($numeroParcelaPagas.' months'));
+				$dataInclusaoDesconto = date_format($dataInclusaoDesconto, 'dmY');
 				
 				$historyFile->setMatricula(trim($funcionarioMatricula));
 				$historyFile->setCpf(trim($history[$funcionarioMatricula]->F_CPF));
 				$historyFile->setNomeServidor(trim($history[$funcionarioMatricula]->F_NOME));
 				$historyFile->setEstabelecimento($this->BIConfig->orgao->org_establishment_code);
 				$historyFile->setOrgao($this->BIConfig->orgao->org_id);
-				$historyFile->setCodigoDesconto(trim($mov->O_RENDIMEN));
-				$historyFile->setPrazoTotal(trim($mov->O_TOTPARCF));
-				$historyFile->setNumeroParcelasPagas(trim($mov->O_QTDPARCF));
+				$historyFile->setCodigoDesconto(trim(substr($mov->O_RENDIMEN, 1, 3)));
+				$historyFile->setPrazoTotal($totalParcelas);
+				$historyFile->setNumeroParcelasPagas($numeroParcelaPagas);
 				$historyFile->setValorDesconto(trim($mov->O_VALOR));
-				$historyFile->setDataInclusaoDesconto(trim($config[0]->INI_FOLHA));
+				$historyFile->setDataInclusaoDesconto($dataInclusaoDesconto);
 				$historyFile->attachIntoCollection($historyFile);
 			}
 			
@@ -186,9 +198,9 @@ class Files extends CI_Controller {
 				/**
 				 * Filtro por Órgao e Estabelecimento
 				 */
-				if (trim($funcionarios[$funcionarioMatricula]->F_CNTCUSTO) <> $this->BIConfig->orgao->org_code){
-					continue;
-				}
+				// if (trim($funcionarios[$funcionarioMatricula]->F_CNTCUSTO) <> $this->BIConfig->orgao->org_code){
+				// 	continue;
+				// }
 
 				$marginFile->setMatricula($funcionarioMatricula);
 				$marginFile->setCpf(trim($funcionarios[$funcionarioMatricula]->F_CPF));

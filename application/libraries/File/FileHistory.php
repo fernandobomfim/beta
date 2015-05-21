@@ -24,7 +24,7 @@ Class FileHistory extends FileAbstract {
 	        $structure->setField('orgao', FileStructure::TYPE_STRING, 74, 3, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
 		$structure->setField('codigoDesconto', FileStructure::TYPE_STRING, 77, 3);
         $structure->setField('prazoTotal', FileStructure::TYPE_INTEGER, 80, 3, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
-        $structure->setField('numeroParcelasPagas', FileStructure::TYPE_INTEGER, 83, 8, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
+        $structure->setField('numeroParcelasPagas', FileStructure::TYPE_INTEGER, 83, 3, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
         $structure->setField('valorDesconto', FileStructure::TYPE_DECIMAL, 86, 10, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
         $structure->setField('dataInclusaoDesconto', FileStructure::TYPE_DATE, 96, 8);
 		parent::__construct($structure);
