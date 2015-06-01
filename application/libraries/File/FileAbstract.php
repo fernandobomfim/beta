@@ -130,7 +130,6 @@ Class FileAbstract {
 		if ($line && !empty($line)) {
 			$processedLine = new \StdClass();
 			foreach ($this->getFileStructure() as $structure) {
-				echo $structure->fieldName.": ".$structure->fieldSize."/n";
 				$fieldName = $structure->fieldName;
 				$processedLine->$fieldName = trim(substr($line, $structure->fieldIndex, $structure->fieldSize));
 			}
@@ -143,27 +142,27 @@ Class FileAbstract {
         switch ($structure->fieldPad) {
             case 'LEFT_ZERO':
                 #return str_pad($data, $structure->fieldSize, "0", STR_PAD_LEFT);
-                return $this->str_pad_unicode($data, $structure->fieldSize, "0", STR_PAD_LEFT);
+                return $this->mb_str_pad($data, $structure->fieldSize, "0", STR_PAD_LEFT);
                 break;
             case 'LEFT_SPACE':
                 #return str_pad($data, $structure->fieldSize, " ", STR_PAD_LEFT);
-            	return $this->str_pad_unicode($data, $structure->fieldSize, " ", STR_PAD_LEFT);
+            	return $this->mb_str_pad($data, $structure->fieldSize, " ", STR_PAD_LEFT);
                 break;
             case 'RIGHT_ZERO':
                 #return str_pad($data, $structure->fieldSize, "0", STR_PAD_RIGHT);
-            	return $this->str_pad_unicode($data, $structure->fieldSize, "0", STR_PAD_RIGHT);
+            	return $this->mb_str_pad($data, $structure->fieldSize, "0", STR_PAD_RIGHT);
                 break;
             case 'RIGHT_SPACE':
                 #return str_pad($data, $structure->fieldSize, " ", STR_PAD_RIGHT);
-                return $this->str_pad_unicode($data, $structure->fieldSize, " ", STR_PAD_RIGHT);
+                return $this->mb_str_pad($data, $structure->fieldSize, " ", STR_PAD_RIGHT);
                 break;
             case 'BOTH_ZERO':
                 #return str_pad($data, $structure->fieldSize, "0", STR_PAD_BOTH);
-                return $this->str_pad_unicode($data, $structure->fieldSize, "0", STR_PAD_BOTH);
+                return $this->mb_str_pad($data, $structure->fieldSize, "0", STR_PAD_BOTH);
                 break;
             case 'BOTH_SPACE':
                 #return str_pad($data, $structure->fieldSize, " ", STR_PAD_BOTH);
-            	return $this->str_pad_unicode($data, $structure->fieldSize, " ", STR_PAD_BOTH);
+            	return $this->mb_str_pad($data, $structure->fieldSize, " ", STR_PAD_BOTH);
                 break;
             default:
                 return NULL;
@@ -201,6 +200,12 @@ Class FileAbstract {
 	    }
 	    
 	    return $result;
+	}
+
+	public function mb_str_pad( $input, $pad_length, $pad_string = ' ', $pad_type = STR_PAD_RIGHT)
+	{
+    	$diff = strlen( $input ) - mb_strlen( $input );
+    	return str_pad( $input, $pad_length + $diff, $pad_string, $pad_type );
 	}
 
     public function dateToFile($date) {

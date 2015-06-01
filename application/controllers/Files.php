@@ -73,11 +73,11 @@ class Files extends CI_Controller {
 				}
 
 				$totalParcelas = trim($mov->O_TOTPARCF);
-				$parcelaAtual = trim($mov->O_QTDPARCF);
-				$numeroParcelaPagas = ($totalParcelas-$parcelaAtual)+1;
+				$parcelasPagas = trim($mov->O_QTDPARCF);
+				$parcelaAtual = $parcelasPagas+1;
 				$dataInclusaoDesconto = strtotime(trim($config[0]->INI_FOLHA));
 				$dataInclusaoDesconto = date_create(date('Y-m-d', $dataInclusaoDesconto));
-				$dataInclusaoDesconto = date_sub($dataInclusaoDesconto, date_interval_create_from_date_string($numeroParcelaPagas.' months'));
+				$dataInclusaoDesconto = date_sub($dataInclusaoDesconto, date_interval_create_from_date_string(($parcelasPagas+1).' months'));
 				$dataInclusaoDesconto = date_format($dataInclusaoDesconto, 'dmY');
 				
 				$historyFile->setMatricula(trim($funcionarioMatricula));
@@ -87,7 +87,7 @@ class Files extends CI_Controller {
 				$historyFile->setOrgao($this->BIConfig->orgao->org_id);
 				$historyFile->setCodigoDesconto(trim(substr($mov->O_RENDIMEN, 1, 3)));
 				$historyFile->setPrazoTotal($totalParcelas);
-				$historyFile->setNumeroParcelasPagas($numeroParcelaPagas);
+				$historyFile->setNumeroParcelasPagas($parcelasPagas);
 				$historyFile->setValorDesconto(trim($mov->O_VALOR));
 				$historyFile->setDataInclusaoDesconto($dataInclusaoDesconto);
 				$historyFile->attachIntoCollection($historyFile);
@@ -180,6 +180,9 @@ class Files extends CI_Controller {
 			redirect('files/margin');
 		}
 
+		#var_dump($ficha);
+		#die;
+
 		if ($ficha && count($ficha)) {
 			$marginFile = new FileMargin;
 
@@ -202,19 +205,22 @@ class Files extends CI_Controller {
 				// 	continue;
 				// }
 
+				$margem = number_format($row->A_VAL01,2);
+				$margemCartao = ($margem > 0) ? number_format($margem/3, 2) : 0;
+
 				$marginFile->setMatricula($funcionarioMatricula);
 				$marginFile->setCpf(trim($funcionarios[$funcionarioMatricula]->F_CPF));
 				$marginFile->setNomeServidor(trim($funcionarios[$funcionarioMatricula]->F_NOME));
 				$marginFile->setEstabelecimento($this->BIConfig->orgao->org_establishment_code);
 				$marginFile->setOrgao($this->BIConfig->orgao->org_id);
-				$marginFile->setMargem(isset($ficha[$funcionarioMatricula][$evento]) ? $ficha[$funcionarioMatricula][$evento]->A_VAL01 : '');
-				$marginFile->setMargemCartao(isset($ficha[$funcionarioMatricula][$evento]) ? number_format($ficha[$funcionarioMatricula][$evento]->A_VAL01/3, 2) : '');
+				$marginFile->setMargem($margem);
+				$marginFile->setMargemCartao($margemCartao);
 				$marginFile->setDataNascimento($marginFile->dateToFile($funcionarios[$funcionarioMatricula]->F_DATANASC));
 				$marginFile->setDataAdmissao($marginFile->dateToFile($funcionarios[$funcionarioMatricula]->F_ADMISSAO));
 				$marginFile->setDataFimContrato(empty(trim($funcionarios[$funcionarioMatricula]->F_DTFIMCTA)) ? '' : $marginFile->dateToFile($funcionarios[$funcionarioMatricula]->F_DTFIMCTA));
 				$marginFile->setRegimeTrabalho($regime[trim($funcionarios[$funcionarioMatricula]->F_VINCULO)]);
-				$marginFile->setLocalTrabalho(utf8_encode(trim($departamento[trim($funcionarios[$funcionarioMatricula]->F_CNTCUSTO)]->D_NOME)));
-				$marginFile->setCarteiraIdentidade(trim($funcionarios[$funcionarioMatricula]->F_IDENTIDA).trim($funcionarios[$funcionarioMatricula]->F_CI_UF));
+				$marginFile->setLocalTrabalho(iconv('UTF-8', 'ISO-8859-1///TRANSLIT', utf8_encode(trim($departamento[trim($funcionarios[$funcionarioMatricula]->F_CNTCUSTO)]->D_NOME))));
+				$marginFile->setCarteiraIdentidade(trim($funcionarios[$funcionarioMatricula]->F_IDENTIDA).trim($funcionarios[$funcionarioMatricula]->F_UF));
 				$marginFile->attachIntoCollection($marginFile);
 			}
 
@@ -319,8 +325,46 @@ class Files extends CI_Controller {
 
 	public function test()
 	{
-		$this->load->model('Dbf_evento', 'DBFEvento');
-		$eventos = $this->DBFEvento->fetchAllForSelectInput(TRUE);
-		var_dump($eventos);
+		// $this->load->model('Dbf_evento', 'DBFEvento');
+		// $eventos = $this->DBFEvento->fetchAllForSelectInput(TRUE);
+		// var_dump($eventos);
+
+		$arquivo = realpath('dbf/CADFUN.dbf');	
+		if ($arquivo) {
+			$conn = dbase_open($arquivo, '2');
+			if ($conn) {
+				$rows = dbase_numrecords($conn);
+				$records = array();
+				for ($i=1; $i <= $rows; $i++) {
+					$records[$i] = dbase_get_record_with_names($conn, $i);
+				}
+
+				$data_update = $records[1];
+				unset($data_update['deleted']);
+				//$data_update['F_NOME'] = "SEVERINO EDUARDO HOLANDA VASCONCELOS";
+				$data_update['F_NOME'] = "SEVERINO BOMFIM";
+				if (dbase_replace_record($conn, $data_update, 1)) {
+					die('Arquivo editado com sucesso!');
+				} else {
+					die('Falha ao editar arquivo.');
+				}
+
+			} else {
+				die('Não foi possível abrir o Banco de Dados');
+			}
+		} else {
+			die('Arquivo não encontrado.');
+		}
+	}
+
+	public function MarginTest()
+	{
+		$arquivo = realpath("public/Arquivo_de_Margem_2015-05-25_02-52-38.txt");
+		
+		$marginFile = new FileMargin;
+		$marginFile->setFile($arquivo);
+		$marginFile->processFile();
+		$collection = $marginFile->getCollection();
+		var_dump($collection);
 	}
 }
