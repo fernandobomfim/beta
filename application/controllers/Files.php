@@ -152,10 +152,12 @@ class Files extends CI_Controller {
 		$this->load->model('DBF_cadfun', 'DBFCadfun');
 		$this->load->model('DBF_fichaf', 'DBFFichaf');
 		$this->load->model('DBF_depart', 'DBFDepart');
+		$this->load->model('DBF_config', 'DBFConfig');
 
 		$funcionarios = $this->DBFCadfun->fetchAll(TRUE);
 		$ficha = $this->DBFFichaf->fetchAll();
 		$departamento = $this->DBFDepart->fetchAll(TRUE);
+		$config = $this->DBFConfig->fetchAll();
 		
 		if (!count($funcionarios)) {
 			$this->message->add('Nenhum registro encontrado no arquivo CADFUN.DBF.','error');
@@ -204,7 +206,9 @@ class Files extends CI_Controller {
 				// 	continue;
 				// }
 
-				$margem = number_format($row->A_VAL01,2, '.', '');
+				$mesReferencia = trim($config[0]->MES_REF)-1;
+
+				$margem = number_format($row->A_VAL04,2, '.', '');
 				$margemCartao = ($margem > 0) ? number_format($margem/3, 2, '.', '') : 0;
 
 				$marginFile->setMatricula($funcionarioMatricula);
