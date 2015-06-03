@@ -74,10 +74,9 @@ class Files extends CI_Controller {
 
 				$totalParcelas = trim($mov->O_TOTPARCF);
 				$parcelasPagas = trim($mov->O_QTDPARCF);
-				$parcelaAtual = $parcelasPagas+1;
 				$dataInclusaoDesconto = strtotime(trim($config[0]->INI_FOLHA));
 				$dataInclusaoDesconto = date_create(date('Y-m-d', $dataInclusaoDesconto));
-				$dataInclusaoDesconto = date_sub($dataInclusaoDesconto, date_interval_create_from_date_string(($parcelasPagas+1).' months'));
+				$dataInclusaoDesconto = date_sub($dataInclusaoDesconto, date_interval_create_from_date_string(($parcelasPagas-1).' months'));
 				$dataInclusaoDesconto = date_format($dataInclusaoDesconto, 'dmY');
 				
 				$historyFile->setMatricula(trim($funcionarioMatricula));
@@ -205,8 +204,8 @@ class Files extends CI_Controller {
 				// 	continue;
 				// }
 
-				$margem = number_format($row->A_VAL01,2);
-				$margemCartao = ($margem > 0) ? number_format($margem/3, 2) : 0;
+				$margem = number_format($row->A_VAL01,2, '.', '');
+				$margemCartao = ($margem > 0) ? number_format($margem/3, 2, '.', '') : 0;
 
 				$marginFile->setMatricula($funcionarioMatricula);
 				$marginFile->setCpf(trim($funcionarios[$funcionarioMatricula]->F_CPF));
