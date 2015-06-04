@@ -73,7 +73,7 @@ class Files extends CI_Controller {
 				}
 
 				$totalParcelas = trim($mov->O_TOTPARCF);
-				$parcelasPagas = trim($mov->O_QTDPARCF);
+				$parcelasPagas = trim($mov->O_QTDPARCF)+1;
 				$dataInclusaoDesconto = strtotime(trim($config[0]->INI_FOLHA));
 				$dataInclusaoDesconto = date_create(date('Y-m-d', $dataInclusaoDesconto));
 				$dataInclusaoDesconto = date_sub($dataInclusaoDesconto, date_interval_create_from_date_string(($parcelasPagas-1).' months'));
