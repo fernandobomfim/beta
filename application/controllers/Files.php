@@ -207,8 +207,9 @@ class Files extends CI_Controller {
 				// }
 
 				$mesReferencia = trim($config[0]->MES_REF)-1;
+				$mesReferenciaColuna = "A_VAL".str_pad($mesReferencia, '2', '0', STR_PAD_LEFT);
 
-				$margem = number_format($row->A_VAL04,2, '.', '');
+				$margem = number_format($row->$mesReferenciaColuna, 2, '.', '');
 				$margemCartao = ($margem > 0) ? number_format($margem/3, 2, '.', '') : 0;
 
 				$marginFile->setMatricula($funcionarioMatricula);
