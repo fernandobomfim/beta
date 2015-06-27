@@ -2,6 +2,7 @@
 use application\libraries\Dbase\Dbase;
 use application\libraries\File\FileMargin;
 use application\libraries\File\FileHistory;
+use application\libraries\File\FileMoviment;
 
 class Files extends CI_Controller {
 
@@ -112,6 +113,7 @@ class Files extends CI_Controller {
 						$fileInfo['file_path'] = $path.$fileName;
 						$fileInfo['file_org_id'] = $this->BIConfig->orgao->org_id;
 						$fileInfo['file_org_name'] = $this->BIConfig->orgao->org_name;
+						$fileInfo['file_establishment_code'] = $this->BIConfig->orgao->org_establishment_code;
 						$fileInfo['file_filter_serialized'] = implode(', ', $this->input->post('eventos'));
 						$this->db->insert('bi_files', $fileInfo);
 						if ($this->db->trans_status() === FALSE) {
@@ -281,6 +283,110 @@ class Files extends CI_Controller {
 		$data['page_title'] = "Arquivos de Movimento";
 		$data['page_icon'] = "fa-file-excel-o";
 		$this->load->view('moviment_list', $data);
+	}
+
+	public function movimentProcess($file_id = 0)
+	{
+		if ($file_id > 0) {
+			$this->load->model('File');
+			#$this->load->model('Moviment_log', 'movimentLog');
+
+			$moviment = $this->File->getFile($file_id);
+			if ($moviment) {
+				$movimentFile = new FileMoviment;
+				$movimentFile->setFile($moviment->file_path);
+				$movimentFile->processFile();
+				$collection = $movimentFile->getCollection();
+
+				if ($collection && count($collection) > 0) {
+					
+					$this->load->model('Dbf_codfix', 'Codfix');
+				
+					foreach ($collection as $key => $mov) {
+						$movRegisterObj = new FileMoviment();
+						$movRegisterObj->hydrate($mov);
+						#var_dump($movRegisterObj); continue;
+						
+						// Busca o registro no arquivo CODFIX.DBF
+						$registerObj = $this->Codfix->fetchOne($movRegisterObj->matricula);
+						if ($registerObj) {
+							$update = $this->Codfix->updateCodfixRegister($registerObj, $movRegisterObj);
+							if ($update) {
+								$mensagem = "Registro ".$register->F_MATRIC." ATUALIZADO com sucesso!";
+							} else {
+								$mensagem = "Falha ao atualizar registro ".$register->F_MATRIC."! Msg: ".$update;
+							}
+						} else {
+							// $create = $this->Codfix->createCodfixRegister($mov);
+							// $mensagem = "Registro CRIADO com sucesso: ".$mov['codigoDesconto'].".";
+							$mensagem = "Creating....<br>";
+						}
+						echo $mensagem."<br>";
+						continue;
+
+						$this->db->insert('bi_moviment_process_log', array(
+							'log_file_id'	=> $file_id,
+							'log_date'		=> date('Y-m-d H:i:s'),
+							'log_message'	=> $mensagem
+						));
+					}
+				}
+
+				$this->db->where('file_id', $file_id);
+				$this->db->update('bi_files', array('file_status' => '1'));
+			} else {
+				redirect('files/moviment');
+			}
+		}
+	}
+
+	public function uploadFile()
+	{
+		$path = 'uploads/arquivos/';
+		$basePath = realpath($path);
+		if ($basePath) {
+			if (is_writable($basePath)) {
+				$upload_folder = $basePath;
+				$config['upload_path']	= $upload_folder;
+				$config['allowed_types']= 'txt';
+				$config['max_size']		= '2048';
+				$config['file_name']	= "Arquivo_de_Movimento_".date("Y-m-d_H-i-s");
+
+				$this->load->library('upload', $config);
+				if ( ! $this->upload->do_upload('movimento'))
+				{
+					$this->message->add('Erro ao fazer o upload do arquivo! '.$this->upload->display_errors(), 'error');
+					redirect('files/moviment');
+				}
+				else
+				{
+					$data = $this->upload->data();
+					$file = $data['file_name'];
+
+					$fileInfo['file_type'] = '3';
+					$fileInfo['file_upload_date'] = date('Y-m-d H:i:s');
+					$fileInfo['file_path'] = $path.$file;
+					$fileInfo['file_org_id'] = $this->BIConfig->orgao->org_id;
+					$fileInfo['file_org_name'] = $this->BIConfig->orgao->org_name;
+					$fileInfo['file_establishment_code'] = $this->BIConfig->orgao->org_id;
+					$this->db->insert('bi_files', $fileInfo);
+					if ($this->db->trans_status() === FALSE) {
+						$this->db->trans_rollback();
+					} else {
+						$this->db->trans_commit();
+					}
+
+					$this->message->add('O arquivo de movimento foi adicionado com sucesso', 'success');
+					redirect('files/moviment');
+				}
+			} else {
+				show_error("O diretório ". $basePath. " não tem permissão de escrita!");
+				exit();
+			}
+		} else {
+			show_error("O diretório ". $basePath. " não existe!");
+			exit();
+		}	
 	}
 
 	public function returns()

@@ -6,7 +6,7 @@ Class FileAbstract {
 	private $_file;
 	private $_fileStructure;
 	private $_dataCollection = array();
-	private $_fleContents;
+	private $_fileContents;
 	public $_fileProcessedContents;
 
 	const FILE_EOL = "\r\n";
@@ -215,5 +215,4 @@ Class FileAbstract {
     public function dateToHuman() {
 
     }
-
 }

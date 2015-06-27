@@ -1,18 +1,17 @@
 <?php require('header.php');?>
   
-  <?php $this->message->get();?>
-
   <div class="panel panel-default">
+    <?php $this->message->get();?>
     <div class="panel-body">
       <div class="col-md-12">
         <h4 class="pull-left">UPLOAD</h4>
-        <form class="form-inline pull-right" action='<?php echo site_url('files/createMarginFile')?>' method="POST">
+        <form class="form-inline pull-right" action='<?php echo site_url('files/uploadFile')?>' method="POST" enctype="multipart/form-data">
           <div class="form-group">
             <?php
-              echo form_upload("evento", '', 'id="evento" class="form-control" style="height:40px"');
+              echo form_upload("movimento", '', 'id="movimento" class="form-control" style="height:40px"');
             ?>
           </div>
-          <button type="submit" class="btn btn-primary" disabled="disabled">Upload de Arquivo de Movimento</button>
+          <button type="submit" class="btn btn-primary">Upload de Arquivo de Movimento</button>
         </form>
       </div>
     </div>
@@ -28,21 +27,28 @@
               <tr>
                 <th>#</th>
                 <th>TIPO</th>
+                <th>STATUS</th>
                 <th>DATA DE GERAÇÃO</th>
-                <th class="text-right">DOWNLOAD</th>
+                <th>ÓRGÃO</th>
+                <th class="text-right">PROCESSAR</th>
               </tr>
             </thead>
             <tbody>
             <?php 
               if ($files && count($files)):
                 foreach ($files as $row):
+                  $status = ($row->file_status == 1) ? "<label class='label label-success'>Processado</label>" : "<label class='label label-warning'>Não processado</label>"
             ?>
               <tr>
                 <td><?php echo $row->file_id?></td>
                 <td><?php echo $row->type_name?></td>
-                <td><?php echo date('d/m/Y H:i:s', strtotime($row->file_upload_date))?></td>
+                <td><?php echo $status?></td>
+                <td><?php echo date('d/m/Y H:i:s', strtotime($row->file_upload_date));?></td>
+                <td><?php echo str_pad($row->file_org_id, 3, '0', STR_PAD_LEFT)." - ".$row->file_org_name;?></td>
                 <td class="text-right">
-                  <a href="<?php echo site_url('files/download/'.$row->file_id)?>"><i class="fa fa-download"></i></a>
+                  <?php if ($row->file_status == 0): ?>
+                  <a href="<?php echo site_url('files/movimentProcess/'.$row->file_id)?>"><i class="fa fa-cog"></i></a>
+                  <?php endif; ?>
                 </th>
               </tr>
             <?php

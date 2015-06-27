@@ -1,0 +1,21 @@
+<?php
+Class Moviment_log extends CI_Model {
+
+	private $entity = 'bi_moviment_process_log';
+
+	public function __construct()
+	{
+		parent::__construct();
+	}
+
+	public function setLog($logMessage = FALSE)
+	{
+		if ($logMessage) {
+			return $this->db->insert($this->entity, array(
+					'log_date'		=> date('Y-m-d H:i:s'),
+					'log_message'	=> $logMessage
+				));
+		}
+		return FALSE;
+	}
+}

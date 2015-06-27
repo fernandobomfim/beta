@@ -15,15 +15,21 @@ Class Dbase {
 		if ($_file) {
 			$this->setFile($_file);
 			$this->setMode($_mode);
+			$this->open();
 		}
 	}
 
 	public function setFile($file)
 	{
-		if (file_exists($file)) {
-			$this->_file = $file;	
-		} else {
-			throw new \Exception("Erro ao carregar arquivo DBF: O arquivo $file não existe!");
+		try {
+			if (file_exists($file)) {
+				$this->_file = $file;
+			} else {
+				throw new \Exception("Erro ao carregar arquivo DBF: O arquivo ".$file." não existe!");
+			}
+		} catch (\Exception $e) {
+			show_error($e->getMessage());
+			exit();
 		}
 		
 	}
@@ -34,9 +40,19 @@ Class Dbase {
 	}
 
 	public function open()
-	{
-		if (!$this->_identifier = dbase_open($this->_file, $this->_mode)) {
-			throw new \Exception("Erro ao abrir o arquivo DBF.");
+	{	
+		try {
+			if ($this->_mode == 2 && !is_writable($this->_file)) {
+				throw new \Exception("O arquivo DBF selecionado não possui permissão de escrita: ".$this->_file);
+			}
+
+			$this->_identifier = @dbase_open($this->_file, $this->_mode);
+			if (!$this->_identifier) {
+				throw new \Exception("Erro ao abrir o arquivo DBF: ".$this->_file);
+			}
+		} catch (\Exception $e) {
+			 show_error($e->getMessage());
+			 exit();
 		}
 		
 		$this->_header = dbase_get_header_info($this->_identifier);
@@ -86,10 +102,32 @@ Class Dbase {
 		return $_collection;
 	}
 
+	public function getCollectionArray()
+	{
+		$_collection = array();
+
+		for($a = 0; $a <= $this->_numRecords; $a++) {
+			$_collection[$a] = $this->getRecordWithNames($a);
+		}
+
+		return $_collection;
+	}
+
 	public function close()
 	{
 		dbase_close($this->_identifier);
 		return $this;
+	}
+
+	public function setRegister($registerIndex, $registerData)
+	{
+		if ($registerIndex && $registerData && is_int($registerIndex) && is_array($registerData)) {
+			unset($registerData['deleted']);
+			unset($registerData['key']);
+			$registerDataValues = array_values($registerData);
+			return dbase_replace_record($this->_identifier, $registerDataValues, $registerIndex);
+		}
+		return FALSE;
 	}
 
 
