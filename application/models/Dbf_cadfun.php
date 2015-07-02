@@ -1,5 +1,8 @@
 <?php
 use application\libraries\Dbase\Dbase;
+use application\libraries\Dbase\Dbase_cadfun;
+use application\models\Dbf_cadfun_entity;
+
 
 Class DBF_cadfun extends CI_Model {
 
@@ -19,8 +22,21 @@ Class DBF_cadfun extends CI_Model {
 		$dbase->setFile($arquivo);
 		$dbase->open();
 		$collection = $dbase->getCollection();
-		array_shift($collection);
-		#print_r($collection); die;
+
+		if ($formated) {
+			return $this->fetchAllFormated($collection);
+		} else {
+			return $collection;
+		}
+	}
+
+	public function fetchAllTyped($formated = FALSE)
+	{
+		$arquivo = realpath($this->BIConfig->orgao->org_basepath."CADFUN.dbf");
+		$cadfun = new Dbase_Cadfun();
+		$cadfun->setFile($arquivo);
+		$cadfun->open();
+		$collection = $cadfun->getCollection();
 
 		if ($formated) {
 			return $this->fetchAllFormated($collection);

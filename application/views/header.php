@@ -43,6 +43,7 @@
                         endif;
 			?>           
                         </div>
+                        <input type='hidden' name="redirectTo" value="<?php echo current_url(); ?>">
                         <button type="submit" class="btn btn-danger"><i class="fa fa-cog"> Alterar Órgão</i></button>
                     </form>
                     <!-- <div class="btn-group btn-group-option">

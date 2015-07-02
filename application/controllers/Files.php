@@ -2,6 +2,8 @@
 use application\libraries\Dbase\Dbase;
 use application\libraries\File\FileMargin;
 use application\libraries\File\FileHistory;
+use application\libraries\File\FileMoviment;
+use application\libraries\File\FileReturn;
 
 class Files extends CI_Controller {
 
@@ -18,7 +20,7 @@ class Files extends CI_Controller {
 	public function history()
 	{	
 		$this->load->model('File');
-		$history = $this->File->fetchAll('1');
+		$history = $this->File->fetchAll('1', $this->BIConfig->orgao->org_id);
 
 		$this->load->model('Dbf_evento', 'DBFEvento');
 		$data['eventos'] = $this->DBFEvento->fetchAllForSelectInput();
@@ -74,7 +76,7 @@ class Files extends CI_Controller {
 
 				$totalParcelas = trim($mov->O_TOTPARCF);
 				$parcelasPagas = trim($mov->O_QTDPARCF)+1;
-				$dataInclusaoDesconto = strtotime(trim($config[0]->INI_FOLHA));
+				$dataInclusaoDesconto = strtotime(trim($config[1]->INI_FOLHA));
 				$dataInclusaoDesconto = date_create(date('Y-m-d', $dataInclusaoDesconto));
 				$dataInclusaoDesconto = date_sub($dataInclusaoDesconto, date_interval_create_from_date_string(($parcelasPagas-1).' months'));
 				$dataInclusaoDesconto = date_format($dataInclusaoDesconto, 'dmY');
@@ -112,6 +114,7 @@ class Files extends CI_Controller {
 						$fileInfo['file_path'] = $path.$fileName;
 						$fileInfo['file_org_id'] = $this->BIConfig->orgao->org_id;
 						$fileInfo['file_org_name'] = $this->BIConfig->orgao->org_name;
+						$fileInfo['file_establishment_code'] = $this->BIConfig->orgao->org_establishment_code;
 						$fileInfo['file_filter_serialized'] = implode(', ', $this->input->post('eventos'));
 						$this->db->insert('bi_files', $fileInfo);
 						if ($this->db->trans_status() === FALSE) {
@@ -206,7 +209,7 @@ class Files extends CI_Controller {
 				// 	continue;
 				// }
 
-				$mesReferencia = trim($config[0]->MES_REF)-1;
+				$mesReferencia = trim($config[1]->MES_REF)-1;
 				$mesReferenciaColuna = "A_VAL".str_pad($mesReferencia, '2', '0', STR_PAD_LEFT);
 
 				$margem = number_format($row->$mesReferenciaColuna, 2, '.', '');
@@ -274,13 +277,150 @@ class Files extends CI_Controller {
 	public function moviment()
 	{	
 		$this->load->model('File');
-		$moviment = $this->File->fetchAll('3');
+		$moviment = $this->File->fetchAll('3', $this->BIConfig->orgao->org_id);
 		$data['files'] = $moviment;
 
 		$data['page'] = "moviment";
 		$data['page_title'] = "Arquivos de Movimento";
 		$data['page_icon'] = "fa-file-excel-o";
 		$this->load->view('moviment_list', $data);
+	}
+
+	public function movimentProcess($file_id = 0)
+	{
+		if ($file_id > 0) {
+			$this->load->model('File');
+
+			$moviment = $this->File->getFile($file_id);
+
+			if ($moviment && $moviment->file_status == '0') {
+				$movimentFile = new FileMoviment;
+				$movimentFile->setFile($moviment->file_path);
+				$movimentFile->processFile();
+				$collection = $movimentFile->getCollection();
+
+				if ($collection && count($collection) > 0) {
+					
+					$this->load->model('Dbf_codfix', 'Codfix');
+				
+					foreach ($collection as $key => $mov) {
+						$movRegisterObj = new FileMoviment();
+						$movRegisterObj->hydrate($mov);
+						
+						$registerObj = $this->Codfix->fetchOne($movRegisterObj->matricula);
+						if ($registerObj) {
+							$update = $this->Codfix->updateCodfixRecord($registerObj, $movRegisterObj);
+							if (!$update) {
+								$mensagem = "Matricula  ".$registerObj->F_MATRIC.": FALHA na atualização! DADOS: ".serialize(
+									array(
+										'matricula' => $movRegisterObj->matricula,
+									 	'codigoDesconto' => $movRegisterObj->codigoDesconto,
+									 	'valorDesconto' => $movRegisterObj->valorDesconto, 
+									 	'prazoTotal' => $movRegisterObj->prazoTotal, 
+									 	'numeroParcelasPagas' => $movRegisterObj->numeroParcelasPagas
+									)
+								);
+							}
+						} else {
+							$create = $this->Codfix->createCodfixRecordFromMoviment($movRegisterObj);
+							if (!$create) {
+								$mensagem = "Matricula  ".$registerObj->F_MATRIC.": FALHA na criação! DADOS: ".serialize(array($movRegisterObj->matricula, $movRegisterObj->codigoDesconto, $movRegisterObj->valorDesconto, $movRegisterObj->prazoTotal, $movRegisterObj->numeroParcelasPagas));
+							}
+						}
+
+						if (isset($message)) {
+							$this->db->insert('bi_moviment_process_log', array(
+								'log_file_id'	=> $file_id,
+								'log_date'		=> date('Y-m-d H:i:s'),
+								'log_message'	=> $mensagem
+							));
+						}
+					}
+				}
+
+				$this->db->where('file_id', $file_id);
+				$this->db->update('bi_files', array('file_status' => '1'));
+
+				$this->message->add('Arquivo #'.$file_id.' processado com sucesso!');
+				redirect('files/moviment');
+			} else {
+				redirect('files/moviment');
+			}
+		}
+	}
+
+	public function uploadFile()
+	{
+		$path = 'uploads/arquivos/';
+		$basePath = realpath($path);
+		if ($basePath) {
+			if (is_writable($basePath)) {
+				$upload_folder = $basePath;
+				$config['upload_path']	= $upload_folder;
+				$config['allowed_types']= 'txt';
+				$config['max_size']		= '2048';
+				$config['file_name']	= "Arquivo_de_Movimento_".date("Y-m-d_H-i-s");
+
+				$this->load->library('upload', $config);
+				if ( ! $this->upload->do_upload('movimento'))
+				{
+					$this->message->add('Erro ao fazer o upload do arquivo! '.$this->upload->display_errors(), 'error');
+					redirect('files/moviment');
+				}
+				else
+				{
+					$data = $this->upload->data();
+					$file = $data['file_name'];
+					$filePath = $path.$file;
+
+					if (!$this->CheckMovmentFile($filePath) ) {
+						unset($filePath);
+						$this->message->add('Este arquivo pertence a outro órgão ou é inválido! Verifique o arquivo de tente novamente.', 'error');
+						redirect('files/moviment');
+						exit();
+					}
+
+					$fileInfo['file_type'] = '3';
+					$fileInfo['file_upload_date'] = date('Y-m-d H:i:s');
+					$fileInfo['file_path'] = $filePath;
+					$fileInfo['file_org_id'] = $this->BIConfig->orgao->org_id;
+					$fileInfo['file_org_name'] = $this->BIConfig->orgao->org_name;
+					$fileInfo['file_establishment_code'] = $this->BIConfig->orgao->org_id;
+					$this->db->insert('bi_files', $fileInfo);
+					if ($this->db->trans_status() === FALSE) {
+						$this->db->trans_rollback();
+					} else {
+						$this->db->trans_commit();
+					}
+
+					$this->message->add('O arquivo de movimento foi adicionado com sucesso', 'success');
+					redirect('files/moviment');
+				}
+			} else {
+				show_error("O diretório ". $basePath. " não tem permissão de escrita!");
+				exit();
+			}
+		} else {
+			show_error("O diretório ". $basePath. " não existe!");
+			exit();
+		}	
+	}
+
+	private function CheckMovmentFile($file = false)
+	{	
+		if ($file) {
+			$m = new FileMoviment;
+			$m->setFile($file);
+			$m->processFile();
+			$collection = $m->getCollection();
+
+			if ($collection && count($collection) > 0) {
+				if ((int)$collection[0]['orgao'] == $this->BIConfig->orgao->org_code && (int)$collection[0]['estabelecimento'] == $this->BIConfig->orgao->org_establishment_code) {
+					return TRUE;
+				}
+			}
+			return FALSE;
+		}
 	}
 
 	public function returns()
@@ -293,6 +433,128 @@ class Files extends CI_Controller {
 		$data['page_title'] = "Arquivos de Retorno";
 		$data['page_icon'] = "fa-file-excel-o";
 		$this->load->view('returns_list', $data);
+	}
+
+	public function createReturnsFile() 
+	{
+		$this->benchmark->mark('startProcessBenchmark');
+		
+		$this->load->model('Dbf_codfix', 'Codfix');
+		$codfixCollection = $this->Codfix->fetchAll();
+
+		$this->load->model('Dbf_movger', 'Movger');
+		$movgerCollection = $this->Movger->fetchAllTyped();
+
+		$this->load->model('Dbf_cadfun', 'Cadfun');
+		$cadfunCollection = $this->Cadfun->fetchAllTyped(TRUE);
+
+		$this->load->model('Dbf_config', 'Config');
+		$configCollection = $this->Config->fetchAll();
+		$iniFolha = date("mY", strtotime($configCollection[1]->INI_FOLHA));
+
+		if ($codfixCollection && count($codfixCollection)) {
+
+			$fileReturn = new FileReturn;
+
+			foreach ($codfixCollection as $index => $register) {
+
+				if (!isset($cadfunCollection[$register->F_MATRIC])) {
+					continue;
+				}
+
+				// START LIMITADOR: REMOVER QUANDO FINALIZAR OS TESTES
+				// if ($index > 500) break;
+				// END LIMITADOR
+
+				$columnsWithContent = $this->Codfix->getColumnsNumberWithContent($register);
+				foreach ($columnsWithContent as $column) {
+
+					$F_COD = $column['F_COD'.$column['columnNumber']];
+					$F_VAL = $column['F_VAL'.$column['columnNumber']];
+					$F_PRA = $column['F_PRA'.$column['columnNumber']];
+					$F_QTD = $column['F_QTD'.$column['columnNumber']];
+					$F_SIT = $column['F_SIT'.$column['columnNumber']];
+
+					/**
+					 * Inicia a Criação de um Novo Objeto (linha do arquivo retorno)
+					 */
+					$ret = new FileReturn;
+					$ret->setMatricula($register->F_MATRIC);
+					$ret->setCpf($cadfunCollection[$register->F_MATRIC]->F_CPF);
+					$ret->setNomeServidor($cadfunCollection[$register->F_MATRIC]->F_NOME);
+					$ret->setEstabelecimento($this->BIConfig->orgao->org_establishment_code);
+					$ret->setOrgao($this->BIConfig->orgao->org_code);
+					$ret->setCodigoDesconto($F_COD);
+					$ret->setValorDescontoPrevisto($F_VAL);
+					$ret->setPeriodo($iniFolha);
+
+					$movgerRegisterReturn = $this->Movger->checkRegisterIntoMovger($movgerCollection, $register->F_MATRIC, $F_COD);
+					if ($movgerRegisterReturn && isset($movgerRegisterReturn['codigoDesconto']) && isset($movgerRegisterReturn['valorDescontado'])) {
+						if ($F_VAL == $movgerRegisterReturn['valorDescontado']) {
+							$ret->setSituacao('T');
+							$ret->setValorDescontoRealizado($movgerRegisterReturn['valorDescontado']);
+							$ret->setMotivoNaoDesconto("");
+						} elseif ($movgerRegisterReturn['valorDescontado'] < $F_VAL) {
+							$ret->setSituacao('P');
+							$ret->setValorDescontoRealizado($movgerRegisterReturn['valorDescontado']);
+							$ret->setMotivoNaoDesconto("PARCELA DESCONTADA PARCIALMENTE");
+						} elseif ($movgerRegisterReturn['valorDescontado'] > $F_VAL) {
+							$ret->setSituacao('P');
+							$ret->setValorDescontoRealizado($movgerRegisterReturn['valorDescontado']);
+							$ret->setMotivoNaoDesconto("PARCELA DESCONTADA ACIMA DO VALOR");
+						}
+					} else {
+						$ret->setSituacao('R');
+						$ret->setValorDescontoRealizado(0);
+						$ret->setMotivoNaoDesconto("SERVIDOR SEM MOVIMENTACAO FINANCEIRA NO PERIODO");
+					}
+
+					$fileReturn->attachIntoCollection($ret);
+				}	
+			}
+
+			$this->benchmark->mark('endProcessBenchmark');
+		
+
+			$fileReturn->createFile();
+			$fileRendered = $fileReturn->renderFile(TRUE);
+			
+			if (empty($fileRendered)) {
+				$this->message->add('Nenhum registro encontrado para gerar o Arquivo de Retorno.', 'error');
+				redirect('files/returns');
+			}
+
+			$path = 'uploads/arquivos/';
+			$basePath = realpath($path);
+			if ($basePath) {
+				if (is_writable($basePath)) {
+					$fileName = 'retorno_'.date('Y-m-d_H-i-s').'.txt';
+					$filePath = $basePath.'/'.$fileName;
+					if (write_file($filePath, $fileRendered)) {
+						$this->db->trans_begin();
+						$fileInfo['file_type'] = '4';
+						$fileInfo['file_upload_date'] = date('Y-m-d H:i:s');
+						$fileInfo['file_path'] = $path.$fileName;
+						$fileInfo['file_org_id'] = $this->BIConfig->orgao->org_id;
+						$fileInfo['file_org_name'] = $this->BIConfig->orgao->org_name;
+						$this->db->insert('bi_files', $fileInfo);
+						if ($this->db->trans_status() === FALSE) {
+							$this->db->trans_rollback();
+						} else {
+							$this->db->trans_commit();
+						}
+						$this->message->add('Arquivo de Retorno criado com sucesso em '.$this->benchmark->elapsed_time('startProcessBenchmark', 'endProcessBenchmark'). ' segundos');
+						redirect('files/returns');
+					} else {
+						exit("Houve um erro ao salvar o arquivo!");
+					}
+				} else {
+					exit("O diretório ". $basePath. " não tem permissão de escrita!");
+				}
+			} else {
+				exit("O diretório ". $basePath. " não existe!");
+			}
+		}
 	}
 
 	public function download($fileId) {

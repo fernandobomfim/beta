@@ -8,12 +8,16 @@ Class File extends CI_Model {
 		parent::__construct();
 	}
 
-	public function fetchAll($file_type = null)
+	public function fetchAll($file_type = null, $file_org_id = null)
 	{
 		if ($file_type) {
 			$this->db->where('file_type', $file_type);
 		}
+		if ($file_org_id) {
+			$this->db->where('file_org_id', $file_org_id);
+		}
 		$this->db->join('bi_files_types', 'type_id = file_type');
+		$this->db->join('bi_orgs', 'org_id = file_org_id');
 		return $this->db->get('bi_files')->result();
 			
 	}

@@ -87,7 +87,8 @@ class Configuracoes extends CI_Controller {
 			}
 		}
 
-		redirect('');
+		$redirect = $this->input->post('redirectTo');
+		redirect($redirect);
 	}
 
 }

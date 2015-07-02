@@ -21,8 +21,8 @@ Class FileReturn extends FileAbstract{
 		$structure->setField('matricula', FileStructure::TYPE_STRING, 0, 10, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
 		$structure->setField('cpf', FileStructure::TYPE_STRING, 10, 11);
 		$structure->setField('nomeServidor', FileStructure::TYPE_STRING, 21, 50, FileStructure::STRPAD_RIGHT_WITH_SPACES);
-		$structure->setField('estabelecimento', FileStructure::TYPE_STRING, 71, 3);
-		$structure->setField('orgao', FileStructure::TYPE_STRING, 74, 3);
+		$structure->setField('estabelecimento', FileStructure::TYPE_STRING, 71, 3, FileStructure::STRPAD_RIGHT_WITH_ZEROS);
+		$structure->setField('orgao', FileStructure::TYPE_STRING, 74, 3, FileStructure::STRPAD_RIGHT_WITH_ZEROS);
         $structure->setField('codigoDesconto', FileStructure::TYPE_STRING, 77, 3, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
         $structure->setField('valorDescontoPrevisto', FileStructure::TYPE_STRING, 80, 10, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
         $structure->setField('valorDescontoRealizado', FileStructure::TYPE_STRING, 90, 10, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
@@ -111,7 +111,7 @@ Class FileReturn extends FileAbstract{
 
     public function setValorDescontoPrevisto($valorDescontoPrevisto)
     {
-        $this->valorDescontoPrevisto = $valorDescontoPrevisto;
+        $this->valorDescontoPrevisto = number_format($valorDescontoPrevisto, 2, '.', '');
 
         return $this;
     }
@@ -123,7 +123,7 @@ Class FileReturn extends FileAbstract{
 
     public function setValorDescontoRealizado($valorDescontoRealizado)
     {
-        $this->valorDescontoRealizado = $valorDescontoRealizado;
+        $this->valorDescontoRealizado = number_format($valorDescontoRealizado, 2, '.', '');
 
         return $this;
     }
