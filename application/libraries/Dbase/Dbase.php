@@ -1,14 +1,15 @@
 <?php
 namespace application\libraries\Dbase;
+use \application\models\Dbf_codfix_entity AS Dbf_codfix_entity;
 
 Class Dbase {
 
-	private $_file;
-	private $_mode;
-	private $_identifier;
-	private $_header;
-	private $_numRecords;
-	private $_numFields;
+	protected $_file;
+	protected $_mode;
+	protected $_identifier;
+	protected $_header;
+	protected $_numRecords;
+	protected $_numFields;
 
 	public function __construct($_file = NULL, $_mode = 0)
 	{
@@ -94,11 +95,9 @@ Class Dbase {
 	public function getCollection()
 	{
 		$_collection = array();
-
-		for($a = 0; $a <= $this->_numRecords; $a++) {
-			$_collection[$a] = (object) $this->getRecordWithNames($a);		
+		for($a = 1; $a <= $this->_numRecords; $a++) {
+			$_collection[$a] = (object) $this->getRecordWithNames($a);
 		}
-
 		return $_collection;
 	}
 
@@ -119,15 +118,48 @@ Class Dbase {
 		return $this;
 	}
 
-	public function setRegister($registerIndex, $registerData)
+	public function updateRecord(array $registerDataArray, $registerIndex = 1)
 	{
-		if ($registerIndex && $registerData && is_int($registerIndex) && is_array($registerData)) {
-			unset($registerData['deleted']);
-			unset($registerData['key']);
-			$registerDataValues = array_values($registerData);
+		$registerIndex = (int)$registerIndex;
+
+		if ($registerIndex > 0 && is_array($registerDataArray) && count($registerDataArray) > 0) {
+			/**
+			 * Delete a flag "deleted" que
+			 * é capturada no get_records_*.
+			 */
+			unset($registerDataArray['deleted']);
+
+			/**
+			 * Transforma o array em índices números
+			 * Nota: verifique se o Objeto recebido está
+			 * na mesma seuqência de campos do arquivo DBF
+			 */
+			$registerDataValues = array_values($registerDataArray);
+
 			return dbase_replace_record($this->_identifier, $registerDataValues, $registerIndex);
 		}
+
 		return FALSE;
+	}
+
+	public function createRecord(array $registerDataArray)
+	{
+		if (is_array($registerDataArray) && count($registerDataArray) > 0) {
+			/**
+			 * Delete a flag "deleted" que
+			 * é capturada no get_records_*.
+			 */
+			unset($registerDataArray['deleted']);
+
+			/**
+			 * Transforma o array em índices números
+			 * Nota: verifique se o Objeto recebido está
+			 * na mesma seuqência de campos do arquivo DBF
+			 */
+			$registerDataValues = array_values($registerDataArray);
+			
+			return dbase_add_record($this->_identifier, $registerDataValues);
+		}
 	}
 
 

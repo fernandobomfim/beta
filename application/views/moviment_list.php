@@ -1,7 +1,20 @@
 <?php require('header.php');?>
   
+  <?php 
+    $mensagem = $this->message->get(true);
+    if (!empty($mensagem)):
+  ?>
+
+  <div class="row">
+    <div class="col-md-12">
+      <?php echo $mensagem; ?>
+    </div>
+  </div>
+  <?php 
+    endif;
+  ?>
+
   <div class="panel panel-default">
-    <?php $this->message->get();?>
     <div class="panel-body">
       <div class="col-md-12">
         <h4 class="pull-left">UPLOAD</h4>
@@ -29,7 +42,7 @@
                 <th>TIPO</th>
                 <th>STATUS</th>
                 <th>DATA DE GERAÇÃO</th>
-                <th>ÓRGÃO</th>
+                <th>ESTABELECIMENTO/ÓRGÃO</th>
                 <th class="text-right">PROCESSAR</th>
               </tr>
             </thead>
@@ -44,10 +57,10 @@
                 <td><?php echo $row->type_name?></td>
                 <td><?php echo $status?></td>
                 <td><?php echo date('d/m/Y H:i:s', strtotime($row->file_upload_date));?></td>
-                <td><?php echo str_pad($row->file_org_id, 3, '0', STR_PAD_LEFT)." - ".$row->file_org_name;?></td>
+                <td><?php echo str_pad($row->org_establishment_code, 3, '0', STR_PAD_LEFT).'/'.str_pad($row->org_code, 3, '0', STR_PAD_LEFT)." - ".$row->org_name;?></td>
                 <td class="text-right">
                   <?php if ($row->file_status == 0): ?>
-                  <a href="<?php echo site_url('files/movimentProcess/'.$row->file_id)?>"><i class="fa fa-cog"></i></a>
+                  <a class="btn btn-xs btn-danger" href="<?php echo site_url('files/movimentProcess/'.$row->file_id)?>" onClick='return confirmMovimentProcess()'><i class="fa fa-cog"> Processar</i></a>
                   <?php endif; ?>
                 </th>
               </tr>
@@ -63,6 +76,19 @@
             ?>
             </tbody>
           </table>
+
+          <script type="text/javascript">
+          function confirmMovimentProcess() {
+            var confirmMessage = confirm("Deseja realmente processar este arquivo?\nIMPORTANTE: Sempre faça o BACKUP antes de processar um arquivo de movimento.");
+            if (!confirmMessage) {
+              return false;
+            } else {
+              message = 'Aguarde! Procesando arquivo...';
+              waitingDialog.show(message, {dialogSize: 'md', progressType: 'info'});
+
+            }
+          }
+          </script>
         </div><!-- table-responsive -->
       </div><!-- col-md-6 -->                            
       <!-- <div class="btn-group pull-right">

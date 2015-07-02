@@ -1,9 +1,10 @@
 <?php require('header.php');?>
-
+  
   <?php 
     $mensagem = $this->message->get(true);
     if (!empty($mensagem)):
   ?>
+
   <div class="row">
     <div class="col-md-12">
       <?php echo $mensagem; ?>

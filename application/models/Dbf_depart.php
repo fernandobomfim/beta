@@ -19,7 +19,6 @@ Class DBF_depart extends CI_Model {
 		$dbase->setFile($arquivo);
 		$dbase->open();
 		$collection = $dbase->getCollection();
-		array_shift($collection);
 
 		if ($formated) {
 			return $this->fetchAllFormated($collection);
