@@ -334,10 +334,7 @@ class Files extends CI_Controller {
 								'log_date'		=> date('Y-m-d H:i:s'),
 								'log_message'	=> $mensagem
 							));
-							var_dump($mensagem);
 						}
-
-
 					}
 				}
 
@@ -346,9 +343,9 @@ class Files extends CI_Controller {
 				$this->db->update('bi_files', array('file_status' => '1'));
 
 				$this->message->add('Arquivo #'.$file_id.' processado com sucesso!');
-				#redirect('files/moviment');
+				redirect('files/moviment');
 			} else {
-				#redirect('files/moviment');
+				redirect('files/moviment');
 			}
 		}
 	}
