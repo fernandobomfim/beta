@@ -66,7 +66,7 @@
 
           <script type="text/javascript">
           function confirmMovimentProcess() {
-            var confirmMessage = confirm("Deseja gerar o Arquivo de Retorno? Tenha a certeza de já ter processado o MOVGER, caso contrário, todos os lançamentos do CODFIX serão considerados como \"rejeitados\".");
+            var confirmMessage = confirm("Deseja gerar o Arquivo de Retorno? Tenha a certeza de já ter processado o MOVGER, caso contrário, todos os lançamentos do CODFIX serão considerados como \"regeitados\".");
             if (!confirmMessage) {
               return false;
             } else {
