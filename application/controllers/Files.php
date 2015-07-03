@@ -328,23 +328,27 @@ class Files extends CI_Controller {
 							}
 						}
 
-						if (isset($message)) {
+						if (isset($mensagem)) {
 							$this->db->insert('bi_moviment_process_log', array(
 								'log_file_id'	=> $file_id,
 								'log_date'		=> date('Y-m-d H:i:s'),
 								'log_message'	=> $mensagem
 							));
+							var_dump($mensagem);
 						}
+
+
 					}
 				}
+
 
 				$this->db->where('file_id', $file_id);
 				$this->db->update('bi_files', array('file_status' => '1'));
 
 				$this->message->add('Arquivo #'.$file_id.' processado com sucesso!');
-				redirect('files/moviment');
+				#redirect('files/moviment');
 			} else {
-				redirect('files/moviment');
+				#redirect('files/moviment');
 			}
 		}
 	}
