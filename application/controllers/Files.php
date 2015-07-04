@@ -52,6 +52,11 @@ class Files extends CI_Controller {
 			$historyFile = new FileHistory;
 			foreach ($movger as $mov) {
 				$funcionarioMatricula = trim($mov->O_FUNCIONA);
+				
+				if (! isset($history[$funcionarioMatricula])) {
+					continue;
+				}
+
 				$evento = trim($mov->O_RENDIMEN);
 
 				/**
@@ -122,7 +127,6 @@ class Files extends CI_Controller {
 						} else {
 							$this->db->trans_commit();
 						}
-						redirect('files/history');
 					} else {
 						exit("Houve um erro ao salvar o arquivo!");
 					}
@@ -132,7 +136,12 @@ class Files extends CI_Controller {
 			} else {
 				exit("O diretório ". $basePath. " não existe!");
 			}	
+		} else {
+
 		}
+
+		$this->message->add('O arquivo MOVGER não contém registros!', 'error');
+		redirect('files/history');
 	}
 
 	public function margin()

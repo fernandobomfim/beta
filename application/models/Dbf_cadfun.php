@@ -17,7 +17,7 @@ Class DBF_cadfun extends CI_Model {
 
 	public function fetchAll($formated = FALSE)
 	{
-		$arquivo = realpath($this->BIConfig->orgao->org_basepath."CADFUN.dbf");
+		$arquivo = realpath($this->BIConfig->orgao->org_basepath."CADFUN.DBF");
 		$dbase = new Dbase();
 		$dbase->setFile($arquivo);
 		$dbase->open();

@@ -133,7 +133,7 @@ Class FileHistory extends FileAbstract {
 
     public function setValorDesconto($valorDesconto)
     {
-        $this->valorDesconto = $valorDesconto;
+        $this->valorDesconto = number_format($valorDesconto, 2, '.', '');
 
         return $this;
     }

@@ -19,7 +19,7 @@ Class FileReturn extends FileAbstract{
 	{
 		$structure = new FileStructure;
 		$structure->setField('matricula', FileStructure::TYPE_STRING, 0, 10, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
-		$structure->setField('cpf', FileStructure::TYPE_STRING, 10, 11);
+		$structure->setField('cpf', FileStructure::TYPE_STRING, 10, 11, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
 		$structure->setField('nomeServidor', FileStructure::TYPE_STRING, 21, 50, FileStructure::STRPAD_RIGHT_WITH_SPACES);
 		$structure->setField('estabelecimento', FileStructure::TYPE_STRING, 71, 3, FileStructure::STRPAD_RIGHT_WITH_ZEROS);
 		$structure->setField('orgao', FileStructure::TYPE_STRING, 74, 3, FileStructure::STRPAD_RIGHT_WITH_ZEROS);
