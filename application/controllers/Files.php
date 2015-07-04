@@ -309,7 +309,7 @@ class Files extends CI_Controller {
 						
 						$registerObj = $this->Codfix->fetchOne($movRegisterObj->matricula);
 						if ($registerObj) {
-							$update = $this->Codfix->updateCodfixRecord($registerObj, $movRegisterObj);
+							$update = $this->Codfix->updateCodfixRecordFromMoviment($registerObj, $movRegisterObj);
 							if (!$update) {
 								$mensagem = "Matricula  ".$registerObj->F_MATRIC.": FALHA na atualização! DADOS: ".serialize(
 									array(
@@ -590,38 +590,32 @@ class Files extends CI_Controller {
 		redirect('files/'.$redirect);
 	}
 
-	public function test()
+	public function test($test = FALSE)
 	{
-		// $this->load->model('Dbf_evento', 'DBFEvento');
-		// $eventos = $this->DBFEvento->fetchAllForSelectInput(TRUE);
-		// var_dump($eventos);
+		$this->load->model('Dbf_codfix', 'CF');
+		$collection = $this->CF->fetchAll();
 
-		$arquivo = realpath('dbf/CADFUN.dbf');	
-		if ($arquivo) {
-			$conn = dbase_open($arquivo, '2');
-			if ($conn) {
-				$rows = dbase_numrecords($conn);
-				$records = array();
-				for ($i=1; $i <= $rows; $i++) {
-					$records[$i] = dbase_get_record_with_names($conn, $i);
+		if ($test) {
+			foreach ($collection as $key => $value) {
+				if ($key <= 5) {
+					$value->F_VAL01 = 123.55;
+					$value->F_VAL02 = 456.07;
+					$update = $this->CF->updateCodfixRecord($value);
+					if ($update) {
+						var_dump("Registro $key atualizado com sucesso!");
+					} else {
+						var_dump("Falha ao atualizar registro $key!");
+					}
 				}
-
-				$data_update = $records[1];
-				unset($data_update['deleted']);
-				//$data_update['F_NOME'] = "SEVERINO EDUARDO HOLANDA VASCONCELOS";
-				$data_update['F_NOME'] = "SEVERINO BOMFIM";
-				if (dbase_replace_record($conn, $data_update, 1)) {
-					die('Arquivo editado com sucesso!');
-				} else {
-					die('Falha ao editar arquivo.');
-				}
-
-			} else {
-				die('Não foi possível abrir o Banco de Dados');
 			}
 		} else {
-			die('Arquivo não encontrado.');
+			foreach ($collection as $key => $value) {
+				if ($key <= 5) {
+					var_dump($value);
+				}
+			}
 		}
+
 	}
 
 	public function MarginTest()

@@ -67,7 +67,7 @@ Class Dbf_Codfix extends CI_Model {
 		return FALSE;
 	}
 
-	public function updateCodfixRecord(Dbf_Codfix_Entity $registerData, FileMoviment $movimentData)
+	public function updateCodfixRecordFromMoviment(Dbf_Codfix_Entity $registerData, FileMoviment $movimentData)
 	{
 		if ($registerData && $movimentData) {
 			// Identifica coluna disponível
@@ -124,6 +124,19 @@ Class Dbf_Codfix extends CI_Model {
 			return $dbase->createRecord($record->getArray());
 		}
 
+	}
+
+	public function updateCodfixRecord(Dbf_Codfix_Entity $codfixObj)
+	{
+		if ($codfixObj) {
+			$dbase = new Dbase();
+			$dbase->setFile($this->dbfRealPathFile);
+			$dbase->setMode(2);
+			$dbase->open();
+			return $dbase->updateRecord($codfixObj->getArray(), $codfixObj->getRegisterIndex());
+		}
+
+		return FALSE;
 	}
 
 	public function getAvailableColumnToUpdate(Dbf_Codfix_Entity $registerObj, FileMoviment $movimentObj)
