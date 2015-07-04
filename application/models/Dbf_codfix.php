@@ -87,7 +87,7 @@ Class Dbf_Codfix extends CI_Model {
 				$registerData->$F_PRA = (int)$movimentData->prazoTotal;
 				$registerData->$F_QTD = (int)$movimentData->numeroParcelasPagas;
 				$registerData->$F_SIT = "07";
-				$registerData->DATAALT = date('Ymd');
+				$registerData->DATAALT = date('dmY');
 				$registerData->HORAALT = date('H:i:s');
 
 				$dbase = new Dbase();

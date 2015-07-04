@@ -18,10 +18,10 @@ Class Dbase_movger extends Dbase {
 			$entity = new Dbf_movger_entity;
 			$entity->setRegisterIndex($a);
 			$entity->hydrate($tempEntity);
-			$collection[$a] = $entity;
+			$_collection[$a] = $entity;
 			unset($entity);
 		}
 
-		return $collection;
+		return $_collection;
 	}
 }

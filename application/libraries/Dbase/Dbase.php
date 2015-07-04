@@ -26,10 +26,10 @@ Class Dbase {
 			if (file_exists($file)) {
 				$this->_file = $file;
 			} else {
-				throw new \Exception("Erro ao carregar arquivo DBF: O arquivo ".$file." não existe!");
+				throw new \Exception("Erro ao carregar arquivo DBF: O arquivo ".$file." não existe! ");
 			}
 		} catch (\Exception $e) {
-			show_error($e->getMessage());
+			show_error($e->getMessage().". Arquivo: ".$e->getFile());
 			exit();
 		}
 		

@@ -32,7 +32,7 @@ Class DBF_cadfun extends CI_Model {
 
 	public function fetchAllTyped($formated = FALSE)
 	{
-		$arquivo = realpath($this->BIConfig->orgao->org_basepath."CADFUN.dbf");
+		$arquivo = realpath($this->BIConfig->orgao->org_basepath."CADFUN.DBF");
 		$cadfun = new Dbase_Cadfun();
 		$cadfun->setFile($arquivo);
 		$cadfun->open();
