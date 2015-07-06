@@ -290,7 +290,7 @@ Class Dbf_Codfix_Entity implements Dbf_entity_interface {
 	public function getArray($obj = FALSE)
 	{
 		return array(
-			'F_MATRIC' => $this->F_MATRIC,
+			'F_MATRIC' => str_pad($this->F_MATRIC, 6, '0', STR_PAD_LEFT),
 			'F_COD01' => $this->F_COD01, 
 			'F_VAL01' => $this->F_VAL01, 
 			'F_PRA01' => $this->F_PRA01, 

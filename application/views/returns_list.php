@@ -48,7 +48,7 @@
                 <td><?php echo $row->type_name?></td>
                 <td><?php echo date('d/m/Y H:i:s', strtotime($row->file_upload_date))?></td>
                 <td class="text-right">
-                  <a href="<?php echo site_url('files/download/'.$row->file_id)?>"><i class="fa fa-download"></i></a>
+                  <a class="btn btn-info btn-xs" href="<?php echo site_url('files/download/'.$row->file_id)?>"><i class="fa fa-download"></i> Baixar</a>
                 </th>
               </tr>
             <?php

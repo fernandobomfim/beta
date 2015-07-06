@@ -78,13 +78,16 @@ Class Dbf_Codfix extends CI_Model {
 
 				$F_COD = 'F_COD'.$availableColumn;
 				$F_VAL = 'F_VAL'.$availableColumn;
-				$F_PRA = 'F_PRA'.$availableColumn;
+				#$F_PRA = 'F_PRA'.$availableColumn;
+				$F_TOT = 'F_TOT'.$availableColumn;
 				$F_QTD = 'F_QTD'.$availableColumn;
 				$F_SIT = 'F_SIT'.$availableColumn;
+				
 
 				$registerData->$F_COD = str_pad($movimentData->codigoDesconto, 4, '0', STR_PAD_LEFT);
 				$registerData->$F_VAL = $movimentData->valorDesconto;
-				$registerData->$F_PRA = (int)$movimentData->prazoTotal;
+				#$registerData->$F_PRA = (int)$movimentData->prazoTotal;
+				$registerData->$F_TOT = (int)$movimentData->prazoTotal;
 				$registerData->$F_QTD = (int)$movimentData->numeroParcelasPagas;
 				$registerData->$F_SIT = "07";
 				$registerData->DATAALT = date('dmY');
@@ -111,7 +114,8 @@ Class Dbf_Codfix extends CI_Model {
 			$record->F_MATRIC = $movimentData->matricula;
 			$record->F_COD01 = str_pad($movimentData->codigoDesconto, 4, '0', STR_PAD_LEFT);
 			$record->F_VAL01 = $movimentData->valorDesconto;
-			$record->F_PRA01 = (int)$movimentData->prazoTotal;
+			#$record->F_PRA01 = (int)$movimentData->prazoTotal;
+			$record->F_TOT01 = (int)$movimentData->prazoTotal;
 			$record->F_QTD01 = (int)$movimentData->numeroParcelasPagas;
 			$record->F_SIT01 = "07";
 			$record->DATAALT = date('Ymd');

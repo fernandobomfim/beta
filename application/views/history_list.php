@@ -60,7 +60,7 @@
                 <td><?php echo $row->file_org_name;?></td>
                 <td><?php echo $row->file_filter_serialized;?></td>
                 <td class="text-center">
-                  <a href="<?php echo site_url('files/download/'.$row->file_id)?>"><i class="fa fa-download"></i></a>
+                  <a class="btn btn-info btn-xs" href="<?php echo site_url('files/download/'.$row->file_id)?>"><i class="fa fa-download"></i> Baixar</a>
                 </th>
               </tr>
             <?php
