@@ -88,7 +88,7 @@ Class Dbf_Codfix extends CI_Model {
 				$registerData->$F_VAL = $movimentData->valorDesconto;
 				#$registerData->$F_PRA = (int)$movimentData->prazoTotal;
 				$registerData->$F_TOT = (int)$movimentData->prazoTotal;
-				$registerData->$F_QTD = (int)$movimentData->numeroParcelasPagas;
+				$registerData->$F_QTD = (int)($movimentData->prazoTotal - $movimentData->numeroParcelasPagas) + 1;
 				$registerData->$F_SIT = "07";
 				$registerData->DATAALT = date('dmY');
 				$registerData->HORAALT = date('H:i:s');
@@ -116,7 +116,7 @@ Class Dbf_Codfix extends CI_Model {
 			$record->F_VAL01 = $movimentData->valorDesconto;
 			#$record->F_PRA01 = (int)$movimentData->prazoTotal;
 			$record->F_TOT01 = (int)$movimentData->prazoTotal;
-			$record->F_QTD01 = (int)$movimentData->numeroParcelasPagas;
+			$record->F_QTD01 = (int)($movimentData->prazoTotal - $movimentData->numeroParcelasPagas) + 1;
 			$record->F_SIT01 = "07";
 			$record->DATAALT = date('Ymd');
 			$record->HORAALT = date('H:i:s');

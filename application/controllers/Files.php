@@ -472,9 +472,9 @@ class Files extends CI_Controller {
 					continue;
 				}
 
-				// START LIMITADOR: REMOVER QUANDO FINALIZAR OS TESTES
-				// if ($index > 500) break;
-				// END LIMITADOR
+				// GERA ARQUIVO DE RETORNO APENAS PARA OS FUNCIONÁRIOS
+				// DO ESTABELECIMENTO E ÓRGAO SELECIONADOS
+				if (!$cadfunCollection[$register->F_MATRIC]->F_)
 
 				$columnsWithContent = $this->Codfix->getColumnsNumberWithContent($register);
 				foreach ($columnsWithContent as $column) {
