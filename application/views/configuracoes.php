@@ -1,6 +1,18 @@
 <?php require('header.php');?>
   
-  <?php $this->message->get();?>
+  <?php 
+    $mensagem = $this->message->get(true);
+    if (!empty($mensagem)):
+  ?>
+
+  <div class="row">
+    <div class="col-md-12">
+      <?php echo $mensagem; ?>
+    </div>
+  </div>
+  <?php 
+    endif;
+  ?>
 
   <a href="<?php echo site_url('configuracoes/cadastrarOrgao')?>" class="pull-right btn btn-primary">Cadastrar Orgão</a>
   
@@ -30,9 +42,9 @@
                 <td><?php echo $row->org_establishment_code?></td>
                 <td><?php echo date('d/m/Y H:i:s', strtotime($row->org_date))?></td>
                 <td><?php echo $row->org_basepath?></td>
-                <!-- <td class="text-right">
-                  <a href="<?php echo site_url('files/download/'.$row->org_id)?>"><i class="fa fa-download"></i></a>
-                </th> -->
+                <td class="text-right">
+                  <a class="btn btn-xs btn-danger" href="<?php echo site_url('configuracoes/delete/'.$row->org_id)?>" onClick='return confirmDelete()'>Excluir</a>
+                </th>
               </tr>
             <?php
                 endforeach;
@@ -46,6 +58,16 @@
             ?>
             </tbody>
           </table>
+          <script type="text/javascript">
+          function confirmDelete() {
+            var confirmMessage = confirm("Deseja excluir este Órgão definitivamente? Todos os arquivos deste órgao serão excluídos permanentemente.");
+            if (!confirmMessage) {
+              return false;
+            } else {
+              return true;
+            }
+          }
+          </script>
         </div><!-- table-responsive -->
       </div><!-- col-md-6 -->                            
       <!-- <div class="btn-group pull-right">

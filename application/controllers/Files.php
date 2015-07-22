@@ -80,10 +80,10 @@ class Files extends CI_Controller {
 				}
 
 				$totalParcelas = trim($mov->O_TOTPARCF);
-				$parcelasPagas = trim($mov->O_QTDPARCF)+1;
+				$parcelasPagas = trim($mov->O_QTDPARCF);
 				$dataInclusaoDesconto = strtotime(trim($config[1]->INI_FOLHA));
 				$dataInclusaoDesconto = date_create(date('Y-m-d', $dataInclusaoDesconto));
-				$dataInclusaoDesconto = date_sub($dataInclusaoDesconto, date_interval_create_from_date_string(($parcelasPagas-1).' months'));
+				$dataInclusaoDesconto = date_sub($dataInclusaoDesconto, date_interval_create_from_date_string(($parcelasPagas+1).' months'));
 				$dataInclusaoDesconto = date_format($dataInclusaoDesconto, 'dmY');
 				
 				$historyFile->setMatricula(trim($funcionarioMatricula));
@@ -222,7 +222,7 @@ class Files extends CI_Controller {
 				$mesReferenciaColuna = "A_VAL".str_pad($mesReferencia, '2', '0', STR_PAD_LEFT);
 
 				$margem = number_format($row->$mesReferenciaColuna, 2, '.', '');
-				$margemCartao = ($margem > 0) ? number_format($margem/3, 2, '.', '') : 0;
+				$margemCartao = number_format($margem/3, 2, '.', '');
 
 				$marginFile->setMatricula($funcionarioMatricula);
 				$marginFile->setCpf(trim($funcionarios[$funcionarioMatricula]->F_CPF));
@@ -474,7 +474,7 @@ class Files extends CI_Controller {
 
 				// GERA ARQUIVO DE RETORNO APENAS PARA OS FUNCIONÁRIOS
 				// DO ESTABELECIMENTO E ÓRGAO SELECIONADOS
-				if (!$cadfunCollection[$register->F_MATRIC]->F_)
+				#if (!$cadfunCollection[$register->F_MATRIC]->F_)
 
 				$columnsWithContent = $this->Codfix->getColumnsNumberWithContent($register);
 				foreach ($columnsWithContent as $column) {

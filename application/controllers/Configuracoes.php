@@ -73,6 +73,24 @@ class Configuracoes extends CI_Controller {
 		}
 	}
 
+	public function delete($orgId = 0)
+	{
+		if ((int)$orgId > 0) {
+			$this->db->trans_begin();
+			$this->db->where('org_id', $orgId);
+			$this->db->delete('bi_orgs');
+
+			if ($this->db->trans_status() === FALSE) {
+				$this->db->trans_rollback();
+				$this->message->add('Houve um erro ao excluir o arquivo de configuração!', 'error');
+			} else {
+				$this->db->trans_commit();
+				$this->message->add('O arquivo de configuração foi excluído com sucesso!', 'success');
+			}
+		}
+		redirect('configuracoes');
+	}
+
 	public function setConfig($idConfig = false)
 	{	
 		if (!$idConfig) {
