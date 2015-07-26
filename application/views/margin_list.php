@@ -60,6 +60,7 @@
                 <td><?php echo $row->file_filter_serialized;?></td>
                 <td class="text-right">
                   <a class="btn btn-info btn-xs" href="<?php echo site_url('files/download/'.$row->file_id)?>"><i class="fa fa-download"></i> Baixar</a>
+                  <a class="btn btn-danger btn-xs" href="<?php echo site_url('files/delete/'.$row->file_id.'/margin')?>" onClick="return confirmDelete()"><i class="fa fa-download"></i> Excluir</a>
                 </th>
               </tr>
             <?php
@@ -74,6 +75,16 @@
             ?>
             </tbody>
           </table>
+          <script type="text/javascript">
+          function confirmDelete() {
+            var confirmMessage = confirm("Deseja excluir este arquivo definitivamente?");
+            if (!confirmMessage) {
+              return false;
+            } else {
+              return true;
+            }
+          }
+          </script>
         </div><!-- table-responsive -->
       </div><!-- col-md-6 -->                            
       <!-- <div class="btn-group pull-right">

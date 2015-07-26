@@ -42,8 +42,8 @@
                 <th>TIPO</th>
                 <th>STATUS</th>
                 <th>DATA DE GERAÇÃO</th>
-                <th>ESTABELECIMENTO/ÓRGÃO</th>
-                <th class="text-right">PROCESSAR</th>
+                <th>ÓRGÃO</th>
+                <th class="text-right" style="width:180px"></th>
               </tr>
             </thead>
             <tbody>
@@ -60,8 +60,9 @@
                 <td><?php echo str_pad($row->org_establishment_code, 3, '0', STR_PAD_LEFT).'/'.str_pad($row->org_code, 3, '0', STR_PAD_LEFT)." - ".$row->org_name;?></td>
                 <td class="text-right">
                   <?php if ($row->file_status == 0): ?>
-                  <a class="btn btn-xs btn-danger" href="<?php echo site_url('files/movimentProcess/'.$row->file_id)?>" onClick='return confirmMovimentProcess()'><i class="fa fa-cog"> Processar</i></a>
+                  <a class="btn btn-success btn-xs" href="<?php echo site_url('files/movimentProcess/'.$row->file_id)?>" onClick='return confirmMovimentProcess()'><i class="fa fa-cog"></i> Processar</a>
                   <?php endif; ?>
+                  <a class="btn btn-danger btn-xs" href="<?php echo site_url('files/delete/'.$row->file_id.'/moviment')?>" onClick="return confirmDelete()"><i class="fa fa-download"></i> Excluir</a>
                 </th>
               </tr>
             <?php
@@ -76,6 +77,17 @@
             ?>
             </tbody>
           </table>
+
+          <script type="text/javascript">
+          function confirmDelete() {
+            var confirmMessage = confirm("Deseja excluir este arquivo definitivamente?");
+            if (!confirmMessage) {
+              return false;
+            } else {
+              return true;
+            }
+          }
+          </script>
 
           <script type="text/javascript">
           function confirmMovimentProcess() {

@@ -18,10 +18,10 @@ Class FileHistory extends FileAbstract {
 	{
 		$structure = new FileStructure;
 		$structure->setField('matricula', FileStructure::TYPE_INTEGER, 0, 10, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
-		$structure->setField('cpf', FileStructure::TYPE_STRING, 10, 11);
+		$structure->setField('cpf', FileStructure::TYPE_STRING, 10, 11, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
 		$structure->setField('nomeServidor', FileStructure::TYPE_STRING, 21, 50, FileStructure::STRPAD_RIGHT_WITH_SPACES);
 		$structure->setField('estabelecimento', FileStructure::TYPE_STRING, 71, 3, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
-	        $structure->setField('orgao', FileStructure::TYPE_STRING, 74, 3, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
+	    $structure->setField('orgao', FileStructure::TYPE_STRING, 74, 3, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
 		$structure->setField('codigoDesconto', FileStructure::TYPE_STRING, 77, 3);
         $structure->setField('prazoTotal', FileStructure::TYPE_INTEGER, 80, 3, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
         $structure->setField('numeroParcelasPagas', FileStructure::TYPE_INTEGER, 83, 3, FileStructure::STRPAD_LEFT_WTTH_ZEROS);
@@ -97,7 +97,12 @@ Class FileHistory extends FileAbstract {
 
     public function setCodigoDesconto($codigoDesconto)
     {
-        $this->codigoDesconto = $codigoDesconto;
+        $codigoDesconto = (string) $codigoDesconto;
+        if (strlen($codigoDesconto) >= 3) {
+            $codigoDesconto = substr($codigoDesconto, -3, 3);
+        }
+
+        $this->codigoDesconto = (int) $codigoDesconto;
 
         return $this;
     }

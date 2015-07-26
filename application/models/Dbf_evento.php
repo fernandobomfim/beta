@@ -4,20 +4,23 @@ use application\libraries\File\FileAbstract;
 
 Class Dbf_evento extends CI_Model {
 
+	protected $file = '';
+
 	public function __construct()
 	{
 		parent::__construct();
 
-		$this->load->config('beta_informatica', TRUE);
-		$this->BIConfig = (object) $this->config->config['beta_informatica'];
-		$this->BIConfig->orgao = $this->session->userdata('orgao');
+		if (realpath($this->betaconfig->orgBasepath."EVENTO.DBF")) {
+			$this->file = realpath($this->betaconfig->orgBasepath."EVENTO.DBF");
+		} else {
+			$this->file = realpath($this->betaconfig->orgBasepath."EVENTO.dbf");
+		}
 	}
 
 	public function fetchAll($formated = FALSE)
 	{
-		$arquivo = realpath($this->BIConfig->orgao->org_basepath."EVENTO.DBF");
 		$dbase = new Dbase();
-		$dbase->setFile($arquivo);
+		$dbase->setFile($this->file);
 		$dbase->open();
 		$collection = $dbase->getCollection();
 

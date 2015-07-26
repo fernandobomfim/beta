@@ -61,41 +61,15 @@ Class Dbf_Movger_Entity implements Dbf_entity_interface {
 			$this->O_UNID08 	= (isset($data->O_UNID08) ? $data->O_UNID08 : '');
 			$this->O_CNT02 		= (isset($data->O_CNT02) ? $data->O_CNT02 : '');
 			$this->O_CNT05 		= (isset($data->O_CNT05) ? $data->O_CNT05 : '');
-			$this->O_CNT08 		= (isset($data->O_CNT08) ? $data->O_CNT08 : '');
-			
+			$this->O_CNT08 		= (isset($data->O_CNT08) ? $data->O_CNT08 : '');			
 		}
 	}
 
 	public function getArray($obj = FALSE)
 	{
-		return array(
-			'O_FUNCIONA' => $this->O_FUNCIONA,
-			'O_CNTCUSTO' => $this->O_CNTCUSTO,
-			'O_RENDIMEN' => $this->O_RENDIMEN,
-			'O_VALOR' => $this->O_VALOR,
-			'O_PRAZO' => $this->O_PRAZO,
-			'O_REFERENC' => $this->O_REFERENC,
-			'O_FLAG' => $this->O_FLAG,
-			'O_DATA' => $this->O_DATA,
-			'O_SEMANA' => $this->O_SEMANA,
-			'O_CGC' => $this->O_CGC,
-			'DATAALT' => $this->DATAALT,
-			'HORAALT' => $this->HORAALT,
-			'USUARIO' => $this->USUARIO,
-			'O_QTDPARCF' => $this->O_QTDPARCF,
-			'O_TOTPARCF' => $this->O_TOTPARCF,
-			'O_TAREFA' => $this->O_TAREFA,
-			'O_DATASERV' => $this->O_DATASERV,
-			'O_PRODUCAO' => $this->O_PRODUCAO,
-			'O_PRECO' => $this->O_PRECO,
-			'O_UNIDADE' => $this->O_UNIDADE,
-			'O_UNID02' => $this->O_UNID02,
-			'O_UNID05' => $this->O_UNID05,
-			'O_UNID08' => $this->O_UNID08,
-			'O_CNT02' => $this->O_CNT02,
-			'O_CNT05' => $this->O_CNT05,
-			'O_CNT08' => $this->O_CNT08
-		);
+		$array = get_object_vars($this);
+		unset($array['registerIndex']);
+        return ($obj) ? (object)$array : $array;
 	}
 
 

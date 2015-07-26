@@ -1,22 +1,27 @@
 <?php
 use application\libraries\Dbase\Dbase;
+use application\libraries\Dbase\Dbase_depart;
+use application\models\Dbf_depart_entity;
 
 Class DBF_depart extends CI_Model {
+
+	protected $file;
 
 	public function __construct()
 	{
 		parent::__construct();
 
-		$this->load->config('beta_informatica', TRUE);
-		$this->BIConfig = (object) $this->config->config['beta_informatica'];
-		$this->BIConfig->orgao = $this->session->userdata('orgao');
+		if (realpath($this->betaconfig->orgBasepath."DEPART.DBF")) {
+			$this->file = realpath($this->betaconfig->orgBasepath."DEPART.DBF");
+		} else {
+			$this->file = realpath($this->betaconfig->orgBasepath."DEPART.dbf");
+		}
 	}
 
 	public function fetchAll($formated = FALSE)
 	{
-		$arquivo = realpath($this->BIConfig->orgao->org_basepath."DEPART.DBF");
-		$dbase = new Dbase();
-		$dbase->setFile($arquivo);
+		$dbase = new Dbase_depart();
+		$dbase->setFile($this->file);
 		$dbase->open();
 		$collection = $dbase->getCollection();
 

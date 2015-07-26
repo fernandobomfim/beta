@@ -3,20 +3,23 @@ use application\libraries\Dbase\Dbase;
 
 Class DBF_fichaf extends CI_Model {
 
+	protected $file;
+
 	public function __construct()
 	{
 		parent::__construct();
 
-		$this->load->config('beta_informatica', TRUE);
-		$this->BIConfig = (object) $this->config->config['beta_informatica'];
-		$this->BIConfig->orgao = $this->session->userdata('orgao');
+		if (realpath($this->betaconfig->orgBasepath."FICHAF.DBF")) {
+			$this->file = realpath($this->betaconfig->orgBasepath."FICHAF.DBF");
+		} else {
+			$this->file = realpath($this->betaconfig->orgBasepath."FICHAF.dbf");
+		}
 	}
 
 	public function fetchAll($formated = FALSE)
 	{
-		$arquivo = realpath($this->BIConfig->orgao->org_basepath."FICHAF.DBF");
 		$dbase = new Dbase();
-		$dbase->setFile($arquivo);
+		$dbase->setFile($this->file);
 		$dbase->open();
 		$collection = $dbase->getCollection();
 

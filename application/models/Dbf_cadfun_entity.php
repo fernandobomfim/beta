@@ -28,6 +28,7 @@ Class Dbf_Cadfun_Entity implements Dbf_entity_interface {
 	public $F_SITUACAO = 0;
 	public $F_FUNCAO = 0;
 	public $F_CNTCUSTO = 0;
+    public $F_DTFIMCTA = '';
 
 	public $registerIndex = null;
 
@@ -42,57 +43,34 @@ Class Dbf_Cadfun_Entity implements Dbf_entity_interface {
 			$this->F_CI_ORGAO =  (isset($data->F_CI_ORGAO)) ? trim($data->F_CI_ORGAO) : '';
 			$this->F_ELEITOR =  (isset($data->F_ELEITOR)) ? (int)$data->F_ELEITOR : '';
 			$this->F_PIS =  (isset($data->F_PIS)) ? (int)$data->F_PIS : '';
-			$this->F_DATANASC =  (isset($data->F_DATANASC)) ? (int)$data->F_DATANASC : '';
+			$this->F_DATANASC =  (isset($data->F_DATANASC)) ? trim($data->F_DATANASC) : '';
 			$this->F_EST_CIVI =  (isset($data->F_EST_CIVI)) ? (int)$data->F_EST_CIVI : '';
-			$this->F_PAI =  (isset($data->F_PAI)) ? (int)$data->F_PAI : '';
-			$this->F_MAE =  (isset($data->F_MAE)) ? (int)$data->F_MAE : '';
-			$this->F_RUA =  (isset($data->F_RUA)) ? (int)$data->F_RUA : '';
-			$this->F_BAIRRO =  (isset($data->F_BAIRRO)) ? (int)$data->F_BAIRRO : '';
-			$this->F_CIDADE =  (isset($data->F_CIDADE)) ? (int)$data->F_CIDADE : '';
-			$this->F_UF =  (isset($data->F_UF)) ? (int)$data->F_UF : '';
-			$this->F_CEP =  (isset($data->F_CEP)) ? (int)$data->F_CEP : '';
+			$this->F_PAI =  (isset($data->F_PAI)) ? trim($data->F_PAI) : '';
+			$this->F_MAE =  (isset($data->F_MAE)) ? trim($data->F_MAE) : '';
+			$this->F_RUA =  (isset($data->F_RUA)) ? trim($data->F_RUA) : '';
+			$this->F_BAIRRO =  (isset($data->F_BAIRRO)) ? trim($data->F_BAIRRO) : '';
+			$this->F_CIDADE =  (isset($data->F_CIDADE)) ? trim($data->F_CIDADE) : '';
+			$this->F_UF =  (isset($data->F_UF)) ? trim($data->F_UF) : '';
+			$this->F_CEP =  (isset($data->F_CEP)) ? trim($data->F_CEP) : '';
 			$this->F_FONE =  (isset($data->F_FONE)) ? (int)$data->F_FONE : '';
-			$this->F_ADMISSAO =  (isset($data->F_ADMISSAO)) ? (int)$data->F_ADMISSAO : '';
-			$this->F_DTQUINQ =  (isset($data->F_DTQUINQ)) ? (int)$data->F_DTQUINQ : '';
-			$this->F_SALARIO = (isset($data->F_SALARIO)) ? (int)$data->F_SALARIO : 0;
+			$this->F_ADMISSAO =  (isset($data->F_ADMISSAO)) ? trim($data->F_ADMISSAO) : '';
+			$this->F_DTQUINQ =  (isset($data->F_DTQUINQ)) ? trim($data->F_DTQUINQ) : '';
+			$this->F_SALARIO = (isset($data->F_SALARIO)) ? (float)$data->F_SALARIO : 0;
 			$this->F_TIPOSALA =  (isset($data->F_TIPOSALA)) ? (int)$data->F_TIPOSALA : 0;
 			$this->F_VINCULO =  (isset($data->F_VINCULO)) ? (int)$data->F_VINCULO : 0;
 			$this->F_SITUACAO = (isset($data->F_SITUACAO)) ? (int)$data->F_SITUACAO : '';
 			$this->F_FUNCAO = (isset($data->F_FUNCAO)) ? (int)$data->F_FUNCAO : 0;
 			$this->F_CNTCUSTO = (isset($data->F_CNTCUSTO)) ? (int)$data->F_CNTCUSTO : 0;
+            $this->F_DTFIMCTA = (isset($data->F_DTFIMCTA)) ? trim($data->F_DTFIMCTA) : 0;
 		}
 	}
 
 	public function getArray($obj = FALSE)
-	{
-		return array(
-			'F_MATRIC' 	=> $F_MATRIC,
-			'F_NOME' 	=> $F_NOME,
-			'F_CPF' 	=> $F_CPF,
-			'F_IDENTIDA'=> $F_IDENTIDA,
-			'F_CI_ORGAO'=> $F_CI_ORGAO,
-			'F_ELEITOR' => $F_ELEITOR,
-			'F_PIS' 	=> $F_PIS,
-			'F_DATANASC'=> $F_DATANASC,
-			'F_EST_CIVI'=> $F_EST_CIVI,
-			'F_PAI' 	=> $F_PAI,
-			'F_MAE' 	=> $F_MAE,
-			'F_RUA' 	=> $F_RUA,
-			'F_BAIRRO' 	=> $F_BAIRRO,
-			'F_CIDADE' 	=> $F_CIDADE,
-			'F_UF' 		=> $F_UF,
-			'F_CEP' 	=> $F_CEP,
-			'F_FONE' 	=> $F_FONE,
-			'F_ADMISSAO'=> $F_ADMISSAO,
-			'F_DTQUINQ' => $F_DTQUINQ,
-			'F_SALARIO' => $F_SALARIO,
-			'F_TIPOSALA'=> $F_TIPOSALA,
-			'F_VINCULO' => $F_VINCULO,
-			'F_SITUACAO'=> $F_SITUACAO,
-			'F_FUNCAO' 	=> $F_FUNCAO,
-			'F_CNTCUSTO'=> $F_CNTCUSTO
-		);
-	}
+    {
+        $array = get_object_vars($this);
+        unset($array['registerIndex']);
+        return ($obj) ? (object)$array : $array;
+    }
 
     public function getFMATRIC()
     {
@@ -366,6 +344,17 @@ Class Dbf_Cadfun_Entity implements Dbf_entity_interface {
     public function setFCNTCUSTO($F_CNTCUSTO)
     {
         $this->F_CNTCUSTO = $F_CNTCUSTO;
+        return $this;
+    }
+
+    public function getFDTFIMCTA()
+    {
+        return $this->F_DTFIMCTA;
+    }
+
+    public function setFDTFIMCTA($F_DTFIMCTA)
+    {
+        $this->F_DTFIMCTA = $F_DTFIMCTA;
         return $this;
     }
 

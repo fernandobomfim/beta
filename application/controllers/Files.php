@@ -4,6 +4,7 @@ use application\libraries\File\FileMargin;
 use application\libraries\File\FileHistory;
 use application\libraries\File\FileMoviment;
 use application\libraries\File\FileReturn;
+use application\libraries\Dbase\Dbase_codfix;
 
 class Files extends CI_Controller {
 
@@ -20,7 +21,7 @@ class Files extends CI_Controller {
 	public function history()
 	{	
 		$this->load->model('File');
-		$history = $this->File->fetchAll('1', $this->BIConfig->orgao->org_id);
+		$history = $this->File->fetchAll('1', $this->betaconfig->orgId);
 
 		$this->load->model('Dbf_evento', 'DBFEvento');
 		$data['eventos'] = $this->DBFEvento->fetchAllForSelectInput();
@@ -32,69 +33,58 @@ class Files extends CI_Controller {
 		$this->load->view('history_list', $data);
 	}
 
-	public function createHistoryFile() {
+	public function createHistoryFile()
+	{
 		$this->load->model('DBF_cadfun', 'DBFCadfun');
 		$this->load->model('DBF_movger', 'DBFMovger');
 		$this->load->model('DBF_config', 'DBFConfig');
 
-		$history = $this->DBFCadfun->fetchAll(TRUE);
+		$history = $this->DBFCadfun->fetchAllTyped(TRUE);
 		$movger = $this->DBFMovger->fetchAll();
 		$config = $this->DBFConfig->fetchAll();
-
-		// if (!count($history)) {
-			
-		// }
 
 		$filtroEventos = $this->input->post('eventos');
 		$count = 0;
 
 		if ($movger && count($movger)) {
+
 			$historyFile = new FileHistory;
+
 			foreach ($movger as $mov) {
-				$funcionarioMatricula = trim($mov->O_FUNCIONA);
-				
-				if (! isset($history[$funcionarioMatricula])) {
-					continue;
-				}
-
-				$evento = trim($mov->O_RENDIMEN);
-
-				/**
-				 * Filtro por Órgao e Estabelecimento
-				 */
-				// if (isset($history[$funcionarioMatricula])) {
-				// 	if (trim($history[$funcionarioMatricula]->F_CNTCUSTO) <> $this->BIConfig->orgao->org_code){
-				// 		continue;
-				// 	}
-				// } else {
-				// 	continue;
-				// }
 				
 				/**
 				 * Filtro por Eventos
 				 */
+				$evento = $mov->O_RENDIMEN;
 				if ($filtroEventos) {	
 					if (!in_array($evento, $filtroEventos)) {
 						continue;
 					}
 				}
 
-				$totalParcelas = trim($mov->O_TOTPARCF);
-				$parcelasPagas = trim($mov->O_QTDPARCF);
+				/**
+				 * Verifica a Data de Inclusão do Desconto
+				 */
+				$totalParcelas = $mov->O_TOTPARCF;
+				$totalParcelasRestantes = $mov->O_QTDPARCF;
+				$parcelasPagas = $totalParcelas-$totalParcelasRestantes;
 				$dataInclusaoDesconto = strtotime(trim($config[1]->INI_FOLHA));
 				$dataInclusaoDesconto = date_create(date('Y-m-d', $dataInclusaoDesconto));
-				$dataInclusaoDesconto = date_sub($dataInclusaoDesconto, date_interval_create_from_date_string(($parcelasPagas+1).' months'));
+				$dataInclusaoDesconto = date_sub($dataInclusaoDesconto, date_interval_create_from_date_string(($parcelasPagas).' months'));
 				$dataInclusaoDesconto = date_format($dataInclusaoDesconto, 'dmY');
 				
-				$historyFile->setMatricula(trim($funcionarioMatricula));
-				$historyFile->setCpf(trim($history[$funcionarioMatricula]->F_CPF));
-				$historyFile->setNomeServidor(trim($history[$funcionarioMatricula]->F_NOME));
-				$historyFile->setEstabelecimento($this->BIConfig->orgao->org_establishment_code);
-				$historyFile->setOrgao($this->BIConfig->orgao->org_id);
-				$historyFile->setCodigoDesconto(trim(substr($mov->O_RENDIMEN, 1, 3)));
+				/**
+				 * Configura registros do Arquivo de Histórico
+				 */
+				$historyFile->setMatricula($mov->O_FUNCIONA);
+				$historyFile->setCpf($history[$mov->O_FUNCIONA]->F_CPF);
+				$historyFile->setNomeServidor($history[$mov->O_FUNCIONA]->F_NOME);
+				$historyFile->setEstabelecimento($this->betaconfig->orgEstablishmentCode);
+				$historyFile->setOrgao($this->betaconfig->orgCode);
+				$historyFile->setCodigoDesconto($mov->O_RENDIMEN);
 				$historyFile->setPrazoTotal($totalParcelas);
 				$historyFile->setNumeroParcelasPagas($parcelasPagas);
-				$historyFile->setValorDesconto(trim($mov->O_VALOR));
+				$historyFile->setValorDesconto($mov->O_VALOR);
 				$historyFile->setDataInclusaoDesconto($dataInclusaoDesconto);
 				$historyFile->attachIntoCollection($historyFile);
 			}
@@ -110,25 +100,27 @@ class Files extends CI_Controller {
 			$basePath = realpath($path);
 			if ($basePath) {
 				if (is_writable($basePath)) {
-					$fileName = 'historico_'.date('Y-m-d_H-i-s').'.txt';
+					$fileName = 'historico_'.$this->betaconfig->orgEstablishmentCode.'_'.$this->betaconfig->orgCode.'_'.date('Y-m-d_H-i-s').'.txt';
 					$filePath = $basePath.'/'.$fileName;
 					if (write_file($filePath, $fileRendered)) {
 						$this->db->trans_begin();
 						$fileInfo['file_type'] = '1';
 						$fileInfo['file_upload_date'] = date('Y-m-d H:i:s');
 						$fileInfo['file_path'] = $path.$fileName;
-						$fileInfo['file_org_id'] = $this->BIConfig->orgao->org_id;
-						$fileInfo['file_org_name'] = $this->BIConfig->orgao->org_name;
-						$fileInfo['file_establishment_code'] = $this->BIConfig->orgao->org_establishment_code;
+						$fileInfo['file_org_id'] = $this->betaconfig->orgId;
+						$fileInfo['file_org_name'] = $this->betaconfig->orgName;
+						$fileInfo['file_establishment_code'] = $this->betaconfig->orgEstablishmentCode;
 						$fileInfo['file_filter_serialized'] = implode(', ', $this->input->post('eventos'));
 						$this->db->insert('bi_files', $fileInfo);
 						if ($this->db->trans_status() === FALSE) {
 							$this->db->trans_rollback();
 						} else {
 							$this->db->trans_commit();
+							$this->message->add('O arquivo de Histórico foi gerado com sucesso!', 'success');
 						}
+						redirect('files/history');
 					} else {
-						exit("Houve um erro ao salvar o arquivo!");
+						exit("Houve um erro ao salvar o arquivo $filePath!");
 					}
 				} else {
 					exit("O diretório ". $basePath. " não tem permissão de escrita!");
@@ -137,17 +129,15 @@ class Files extends CI_Controller {
 				exit("O diretório ". $basePath. " não existe!");
 			}	
 		} else {
-
+			$this->message->add('O arquivo MOVGER não contém registros!', 'error');
+			redirect('files/history');
 		}
-
-		$this->message->add('O arquivo MOVGER não contém registros!', 'error');
-		redirect('files/history');
 	}
 
 	public function margin()
 	{	
 		$this->load->model('File');
-		$margin = $this->File->fetchAll('2');
+		$margin = $this->File->fetchAll('2', $this->betaconfig->orgId);
 		$data['files'] = $margin;
 
 		$this->load->model('Dbf_evento', 'DBFEvento');
@@ -165,15 +155,17 @@ class Files extends CI_Controller {
 		$this->load->model('DBF_fichaf', 'DBFFichaf');
 		$this->load->model('DBF_depart', 'DBFDepart');
 		$this->load->model('DBF_config', 'DBFConfig');
+		$this->load->model('DBF_movger', 'DBFMovger');
 
-		$funcionarios = $this->DBFCadfun->fetchAll(TRUE);
+		$funcionarios = $this->DBFCadfun->fetchAllTyped(TRUE);
 		$ficha = $this->DBFFichaf->fetchAll();
 		$departamento = $this->DBFDepart->fetchAll(TRUE);
 		$config = $this->DBFConfig->fetchAll();
+		$movger = $this->DBFMovger->fetchAllTyped();
 		
 		if (!count($funcionarios)) {
 			$this->message->add('Nenhum registro encontrado no arquivo CADFUN.DBF.','error');
-			redirect('files/margin');	
+			redirect('files/margin');
 		}
 
 		$regime = array(
@@ -193,50 +185,38 @@ class Files extends CI_Controller {
 			redirect('files/margin');
 		}
 
-		#var_dump($ficha);
-		#die;
+		if ($movger && count($movger)) {
 
-		if ($ficha && count($ficha)) {
 			$marginFile = new FileMargin;
 
-			foreach ($ficha as $row) {
-
-				$funcionarioMatricula = trim($row->A_FUNCIONA);
-				$evento = trim($row->A_RENDIMEN);
+			foreach ($movger as $row) {
 
 				/**
 				 * Filtro por Eventos
 				 */
-				if (!in_array($evento, $filtroEventos)) {
-					continue;
+				$evento = $row->O_RENDIMEN;
+				if ($filtroEventos) {	
+					if (!in_array($evento, $filtroEventos)) {
+						continue;
+					}
 				}
 
-				/**
-				 * Filtro por Órgao e Estabelecimento
-				 */
-				// if (trim($funcionarios[$funcionarioMatricula]->F_CNTCUSTO) <> $this->BIConfig->orgao->org_code){
-				// 	continue;
-				// }
+				$margem = number_format($row->O_VALOR, 2, '.', '');
+				$margemCartao = number_format($row->O_VALOR/3, 2, '.', '');
 
-				$mesReferencia = trim($config[1]->MES_REF)-1;
-				$mesReferenciaColuna = "A_VAL".str_pad($mesReferencia, '2', '0', STR_PAD_LEFT);
-
-				$margem = number_format($row->$mesReferenciaColuna, 2, '.', '');
-				$margemCartao = number_format($margem/3, 2, '.', '');
-
-				$marginFile->setMatricula($funcionarioMatricula);
-				$marginFile->setCpf(trim($funcionarios[$funcionarioMatricula]->F_CPF));
-				$marginFile->setNomeServidor(trim($funcionarios[$funcionarioMatricula]->F_NOME));
+				$marginFile->setMatricula($row->O_FUNCIONA);
+				$marginFile->setCpf(trim($funcionarios[$row->O_FUNCIONA]->F_CPF));
+				$marginFile->setNomeServidor(trim($funcionarios[$row->O_FUNCIONA]->F_NOME));
 				$marginFile->setEstabelecimento($this->BIConfig->orgao->org_establishment_code);
 				$marginFile->setOrgao($this->BIConfig->orgao->org_id);
 				$marginFile->setMargem($margem);
 				$marginFile->setMargemCartao($margemCartao);
-				$marginFile->setDataNascimento($marginFile->dateToFile($funcionarios[$funcionarioMatricula]->F_DATANASC));
-				$marginFile->setDataAdmissao($marginFile->dateToFile($funcionarios[$funcionarioMatricula]->F_ADMISSAO));
-				$marginFile->setDataFimContrato(empty(trim($funcionarios[$funcionarioMatricula]->F_DTFIMCTA)) ? '' : $marginFile->dateToFile($funcionarios[$funcionarioMatricula]->F_DTFIMCTA));
-				$marginFile->setRegimeTrabalho($regime[trim($funcionarios[$funcionarioMatricula]->F_VINCULO)]);
-				$marginFile->setLocalTrabalho(iconv('UTF-8', 'ISO-8859-1///TRANSLIT', utf8_encode(trim($departamento[trim($funcionarios[$funcionarioMatricula]->F_CNTCUSTO)]->D_NOME))));
-				$marginFile->setCarteiraIdentidade(trim($funcionarios[$funcionarioMatricula]->F_IDENTIDA).trim($funcionarios[$funcionarioMatricula]->F_UF));
+				$marginFile->setDataNascimento($marginFile->dateToFile($funcionarios[$row->O_FUNCIONA]->F_DATANASC));
+				$marginFile->setDataAdmissao($marginFile->dateToFile($funcionarios[$row->O_FUNCIONA]->F_ADMISSAO));
+				$marginFile->setDataFimContrato(empty(trim($funcionarios[$row->O_FUNCIONA]->F_DTFIMCTA)) ? '' : $marginFile->dateToFile($funcionarios[$row->O_FUNCIONA]->F_DTFIMCTA));
+				$marginFile->setRegimeTrabalho($regime[trim($funcionarios[$row->O_FUNCIONA]->F_VINCULO)]);
+				$marginFile->setLocalTrabalho(iconv('UTF-8', 'ISO-8859-1///TRANSLIT', utf8_encode(trim($departamento[trim($funcionarios[$row->O_FUNCIONA]->F_CNTCUSTO)]->D_NOME))));
+				$marginFile->setCarteiraIdentidade($funcionarios[$row->O_FUNCIONA]->F_IDENTIDA.$funcionarios[$row->O_FUNCIONA]->F_UF);
 				$marginFile->attachIntoCollection($marginFile);
 			}
 
@@ -252,7 +232,7 @@ class Files extends CI_Controller {
 			$basePath = realpath($path);
 			if ($basePath) {
 				if (is_writable($basePath)) {
-					$fileName = 'margem_'.date('Y-m-d_H-i-s').'.txt';
+					$fileName = 'margem_'.$this->betaconfig->orgEstablishmentCode.'_'.$this->betaconfig->orgCode.'_'.date('Y-m-d_H-i-s').'.txt';
 					$filePath = $basePath.'/'.$fileName;
 					if (write_file($filePath, $fileRendered)) {
 						$this->db->trans_begin();
@@ -265,8 +245,10 @@ class Files extends CI_Controller {
 						$this->db->insert('bi_files', $fileInfo);
 						if ($this->db->trans_status() === FALSE) {
 							$this->db->trans_rollback();
+							$this->message->add('Houve um erro ao salvar o Arquivo de Margem! Tente novamente.', 'error');
 						} else {
 							$this->db->trans_commit();
+							$this->message->add('O Arquivo de Margem foi gerado com sucesso!', 'success');
 						}
 						redirect('files/margin');
 					} else {
@@ -347,13 +329,13 @@ class Files extends CI_Controller {
 					}
 				}
 
-
 				$this->db->where('file_id', $file_id);
 				$this->db->update('bi_files', array('file_status' => '1'));
 
 				$this->message->add('Arquivo #'.$file_id.' processado com sucesso!');
 				redirect('files/moviment');
 			} else {
+				$this->message->add('O Arquivo #'.$file_id.' ja foi processado', 'error');
 				redirect('files/moviment');
 			}
 		}
@@ -436,8 +418,11 @@ class Files extends CI_Controller {
 	public function returns()
 	{	
 		$this->load->model('File');
-		$returns = $this->File->fetchAll('4');
+		$returns = $this->File->fetchAll('4', $this->betaconfig->orgId);
 		$data['files'] = $returns;
+
+		$this->load->model('Dbf_evento', 'DBFEvento');
+		$data['eventos'] = $this->DBFEvento->fetchAllForSelectInput();
 
 		$data['page'] = "return";
 		$data['page_title'] = "Arquivos de Retorno";
@@ -462,22 +447,30 @@ class Files extends CI_Controller {
 		$configCollection = $this->Config->fetchAll();
 		$iniFolha = date("mY", strtotime($configCollection[1]->INI_FOLHA));
 
+		$filtroEventos = $this->input->post('eventos');
+
 		if ($codfixCollection && count($codfixCollection)) {
 
 			$fileReturn = new FileReturn;
 
 			foreach ($codfixCollection as $index => $register) {
 
-				if (!isset($cadfunCollection[$register->F_MATRIC])) {
+				if (!isset($cadfunCollection[(int)$register->F_MATRIC])) {
 					continue;
 				}
 
-				// GERA ARQUIVO DE RETORNO APENAS PARA OS FUNCIONÁRIOS
-				// DO ESTABELECIMENTO E ÓRGAO SELECIONADOS
-				#if (!$cadfunCollection[$register->F_MATRIC]->F_)
-
 				$columnsWithContent = $this->Codfix->getColumnsNumberWithContent($register);
 				foreach ($columnsWithContent as $column) {
+
+					/**
+					 * Filtro por Eventos das Colunas do Codfix
+					 */
+					$evento = $column['F_COD'.$column['columnNumber']];
+					if ($filtroEventos) {	
+						if (!in_array($evento, $filtroEventos)) {
+							continue;
+						}
+					}
 
 					$F_COD = $column['F_COD'.$column['columnNumber']];
 					$F_VAL = $column['F_VAL'.$column['columnNumber']];
@@ -490,11 +483,11 @@ class Files extends CI_Controller {
 					 */
 					$ret = new FileReturn;
 					$ret->setMatricula($register->F_MATRIC);
-					$ret->setCpf($cadfunCollection[$register->F_MATRIC]->F_CPF);
-					$ret->setNomeServidor($cadfunCollection[$register->F_MATRIC]->F_NOME);
+					$ret->setCpf($cadfunCollection[(int)$register->F_MATRIC]->F_CPF);
+					$ret->setNomeServidor($cadfunCollection[(int)$register->F_MATRIC]->F_NOME);
 					$ret->setEstabelecimento($this->BIConfig->orgao->org_establishment_code);
 					$ret->setOrgao($this->BIConfig->orgao->org_code);
-					$ret->setCodigoDesconto($F_COD);
+					$ret->setCodigoDesconto(substr($F_COD, -3, 3));
 					$ret->setValorDescontoPrevisto($F_VAL);
 					$ret->setPeriodo($iniFolha);
 
@@ -530,7 +523,7 @@ class Files extends CI_Controller {
 			$fileRendered = $fileReturn->renderFile(TRUE);
 			
 			if (empty($fileRendered)) {
-				$this->message->add('Nenhum registro encontrado para gerar o Arquivo de Retorno.', 'error');
+				$this->message->add('Nenhum registro encontrado para gerar o Arquivo de Retorno! Verifique o filtro selecionado.', 'error');
 				redirect('files/returns');
 			}
 
@@ -538,7 +531,7 @@ class Files extends CI_Controller {
 			$basePath = realpath($path);
 			if ($basePath) {
 				if (is_writable($basePath)) {
-					$fileName = 'retorno_'.date('Y-m-d_H-i-s').'.txt';
+					$fileName = 'retorno_'.$this->betaconfig->orgEstablishmentCode.'_'.$this->betaconfig->orgCode.'_'.date('Y-m-d_H-i-s').'.txt';
 					$filePath = $basePath.'/'.$fileName;
 					if (write_file($filePath, $fileRendered)) {
 						$this->db->trans_begin();
@@ -547,6 +540,7 @@ class Files extends CI_Controller {
 						$fileInfo['file_path'] = $path.$fileName;
 						$fileInfo['file_org_id'] = $this->BIConfig->orgao->org_id;
 						$fileInfo['file_org_name'] = $this->BIConfig->orgao->org_name;
+						$fileInfo['file_filter_serialized'] = implode(', ', $this->input->post('eventos'));
 						$this->db->insert('bi_files', $fileInfo);
 						if ($this->db->trans_status() === FALSE) {
 							$this->db->trans_rollback();
@@ -574,7 +568,8 @@ class Files extends CI_Controller {
 		if ($file->num_rows()) {
 			$this->load->helper('download');
 			$data = file_get_contents($file->row()->file_path);
-			force_download(str_replace(" ", "_",$file->row()->type_name)."_".date('Y-m-d_H-i-s').'.txt', $data);
+			$file_name = explode("/", $file->row()->file_path);
+			force_download($file_name[count($file_name)-1], $data);
 		} else {
 			redirect();
 		}
@@ -584,15 +579,19 @@ class Files extends CI_Controller {
 	{
 		if ((int)$fileId > 0) {
 			$this->db->trans_begin();
+
+			$this->load->model('File');
+			$file = $this->File->getFile($fileId);			
+
 			$this->db->where('file_id', $fileId);
 			$this->db->delete('bi_files');
 
-			if ($this->db->trans_status() === FALSE) {
-				$this->db->trans_rollback();
-				$this->message->add('Houve um erro ao excluir o arquivo $fileId!', 'error');
+			if ($this->db->trans_status() === TRUE && unlink(realpath($file->file_path)) === TRUE) {
+				$this->db->trans_commit();
+				$this->message->add("O arquivo $fileId foi excluído com sucesso!", 'success');
 			} else {
 				$this->db->trans_rollback();
-				$this->message->add('O arquivo $fileId foi excluído com sucesso!', 'success');
+				$this->message->add("Houve um erro ao excluir o arquivo $fileId!", 'error');
 			}
 		}
 
@@ -636,5 +635,49 @@ class Files extends CI_Controller {
 		$marginFile->processFile();
 		$collection = $marginFile->getCollection();
 		var_dump($collection);
+	}
+
+	public function destroy() {
+		$this->session->sess_destroy();
+	}
+
+	public function testCodfixTable()
+	{
+		$this->load->model('DBF_Codfix', 'codfix');
+		$this->codfix->checkCodfixTableStructure();
+	}
+
+	public function mountTableStructure($file)
+	{
+		$codfix = new Dbase;
+		$codfix->setFile(realpath($this->betaconfig->orgBasepath.$file));
+		$codfix->open();
+		$codfixHeader = $codfix->getHeader();
+		
+		echo "<pre>";
+
+		foreach ($codfixHeader as $key => $column) {
+			$defaultValue = ($column['type'] == 'number') ? 0 : "''";
+			echo 'public $' . $column['name'] . ' = ' . $defaultValue . ";\n";
+		}
+
+		echo "\n".'public function hydrate($data)'."\n{\n";
+		echo "\t".'if (!empty($data)) {'."\n";
+		echo "\t\t".'$data = (is_array($data)) ? (object)$data : $data;'."\n";
+		foreach ($codfixHeader as $key => $column) {
+			$defaultValue = ($column['type'] == 'number') ? 0 : "''";
+			if ($column['type'] == 'number') {
+				if ($column['precision'] > 0) {
+					$castValue = '(float)$data->'.$column['name'];
+				} else{
+					$castValue = '(int)$data->'.$column['name'];
+				}
+			} else {
+				$castValue = 'trim($data->'.$column['name'].')';
+			}
+			echo "\t\t".'$this->' . $column['name'] . ' = (isset($data->' . $column['name'] . ')) ? ' . $castValue . ' : '.$defaultValue.';'."\n";
+		}
+		echo "\n\t}\n";
+		echo "\n}\n";
 	}
 }

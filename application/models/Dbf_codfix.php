@@ -6,10 +6,10 @@ use application\models\Dbf_codfix_entity;
 
 Class Dbf_Codfix extends CI_Model {
 
-	public $dbfFile = 'CODFIX.dbf';
+	public $dbfFile = 'CODFIX.DBF';
 	public $dbfRealPath = '';
 	public $dbfRealPathFile = '';
-	private $numValColumns = 19;
+	private $numValColumns = 30;
 
 	public function __construct()
 	{
@@ -42,7 +42,7 @@ Class Dbf_Codfix extends CI_Model {
 		$formated = array();
 		if ($collection && count($collection)) {
 			foreach ($collection as $key => $value) {
-				$formated[$value->F_MATRIC] = $value;
+				$formated[(int)$value->F_MATRIC] = $value;
 			}
 		}
 		return $formated;
@@ -59,7 +59,7 @@ Class Dbf_Codfix extends CI_Model {
 			$collection = $codfix->getCollection();
 			
 			foreach ($collection as $register) {
-				if ( $register->getFMATRIC() == $matricula ) {
+				if ( $register->F_MATRIC == $matricula ) {
 					return $register;
 				}
 			}
@@ -69,6 +69,12 @@ Class Dbf_Codfix extends CI_Model {
 
 	public function updateCodfixRecordFromMoviment(Dbf_Codfix_Entity $registerData, FileMoviment $movimentData)
 	{
+		/**
+		 * Verifica a estrutura da Entity 
+		 * com a Estrutrua do Arquivo.
+		 */
+		$this->checkCodfixTableStructure();
+
 		if ($registerData && $movimentData) {
 			// Identifica coluna disponível
 			$availableColumn = $this->getAvailableColumnToUpdate($registerData, $movimentData);
@@ -82,14 +88,13 @@ Class Dbf_Codfix extends CI_Model {
 				$F_TOT = 'F_TOT'.$availableColumn;
 				$F_QTD = 'F_QTD'.$availableColumn;
 				$F_SIT = 'F_SIT'.$availableColumn;
-				
 
 				$registerData->$F_COD = str_pad($movimentData->codigoDesconto, 4, '0', STR_PAD_LEFT);
 				$registerData->$F_VAL = $movimentData->valorDesconto;
 				#$registerData->$F_PRA = (int)$movimentData->prazoTotal;
 				$registerData->$F_TOT = (int)$movimentData->prazoTotal;
 				$registerData->$F_QTD = (int)($movimentData->prazoTotal - $movimentData->numeroParcelasPagas) + 1;
-				$registerData->$F_SIT = "07";
+				$registerData->$F_SIT = "07L";
 				$registerData->DATAALT = date('dmY');
 				$registerData->HORAALT = date('H:i:s');
 
@@ -109,6 +114,12 @@ Class Dbf_Codfix extends CI_Model {
 
 	public function createCodfixRecordFromMoviment(FileMoviment $movimentData)
 	{
+		/**
+		 * Verifica a estrutura da Entity 
+		 * com a Estrutrua do Arquivo.
+		 */
+		$this->checkCodfixTableStructure();
+
 		if ($movimentData) {
 			$record = new Dbf_Codfix_Entity;
 			$record->F_MATRIC = $movimentData->matricula;
@@ -117,7 +128,7 @@ Class Dbf_Codfix extends CI_Model {
 			#$record->F_PRA01 = (int)$movimentData->prazoTotal;
 			$record->F_TOT01 = (int)$movimentData->prazoTotal;
 			$record->F_QTD01 = (int)($movimentData->prazoTotal - $movimentData->numeroParcelasPagas) + 1;
-			$record->F_SIT01 = "07";
+			$record->F_SIT01 = "07L";
 			$record->DATAALT = date('Ymd');
 			$record->HORAALT = date('H:i:s');
 
@@ -132,6 +143,12 @@ Class Dbf_Codfix extends CI_Model {
 
 	public function updateCodfixRecord(Dbf_Codfix_Entity $codfixObj)
 	{
+		/**
+		 * Verifica a estrutura da Entity 
+		 * com a Estrutrua do Arquivo.
+		 */
+		$this->checkCodfixTableStructure();
+
 		if ($codfixObj) {
 			$dbase = new Dbase();
 			$dbase->setFile($this->dbfRealPathFile);
@@ -199,5 +216,34 @@ Class Dbf_Codfix extends CI_Model {
 			}
 		}
 		return $columnsWithContent;
+	}
+
+	public function checkCodfixTableStructure()
+	{
+		$entity = new Dbf_Codfix_Entity;
+		$entityVars = get_object_vars($entity);
+
+		$codfix = new Dbase_Codfix();
+		$codfix->setFile($this->dbfRealPathFile);
+		$codfix->open();
+		$codfixHeader = $codfix->getHeader();
+
+		$check = TRUE;
+
+		if (count($entityVars) <> count($codfixHeader)) {
+			show_error('A estrutura do arquivo CODFIX.DBF não é compatível com sua Entity!<br>A contagem dos campos da Entity não é igual aos campos do Arquivo.');
+		}
+
+		$index = 0;
+		foreach ($entityVars as $key => $value) {
+			if ($codfixHeader[$index]['name'] != $key) {
+				$check = FALSE;
+			}
+			$index++;
+		}
+
+		if (!$check) {
+			show_error('A estrutura do arquivo CODFIX.DBF não é compatível com sua Entity!<br>Verifique se todos os campos correspondentes a cada coluna existem.<br>Verifique também, se os campos estão na mesma ordem do arquivo original.');
+		}
 	}
 }

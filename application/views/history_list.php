@@ -37,15 +37,15 @@
         <!-- <h5 class="lg-title mb5">Listagem</h5>
         <p class="mb20">De tabela de serviços</p> -->
         <div class="table-responsive">
-          <table class="table table-striped mb30">
+          <table class="table table-striped">
             <thead>
               <tr>
-                <th class="text-center" style="width:30px">#</th>
-                <th style="width:200px">TIPO</th>
+                <th class="text-center" style="width:30px;">#</th>
+                <th style="width:135px">TIPO</th>
                 <th>DATA DE GERAÇÃO</th>
                 <th>ÓRGÃO</th>
                 <th>EVENTO</th>
-                <th class="text-center" style="width:100px">DOWNLOAD</th>
+                <th class="text-center" style="width:180px">DOWNLOAD</th>
               </tr>
             </thead>
             <tbody>
@@ -61,6 +61,7 @@
                 <td><?php echo $row->file_filter_serialized;?></td>
                 <td class="text-center">
                   <a class="btn btn-info btn-xs" href="<?php echo site_url('files/download/'.$row->file_id)?>"><i class="fa fa-download"></i> Baixar</a>
+                  <a class="btn btn-danger btn-xs" href="<?php echo site_url('files/delete/'.$row->file_id.'/history')?>" onClick="return confirmDelete()"><i class="fa fa-download"></i> Excluir</a>
                 </th>
               </tr>
             <?php
@@ -75,6 +76,16 @@
             ?>
             </tbody>
           </table>
+          <script type="text/javascript">
+          function confirmDelete() {
+            var confirmMessage = confirm("Deseja excluir este arquivo definitivamente?");
+            if (!confirmMessage) {
+              return false;
+            } else {
+              return true;
+            }
+          }
+          </script>
         </div><!-- table-responsive -->
       </div><!-- col-md-6 -->                            
       <!-- <div class="btn-group pull-right">

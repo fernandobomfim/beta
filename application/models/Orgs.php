@@ -6,11 +6,13 @@ class Orgs extends CI_Model {
 	public function __construct()
 	{
 		parent::__construct();
+
 		$session = $this->session->userdata('orgao'); 
 		if (!isset($session->org_id) || empty($session->org_id)) {
 			$orgaos = $this->fetchAll();
 			if ($orgaos && count($orgaos)) {
 				$this->session->set_userdata('orgao', $orgaos[0]);
+				$this->load->library('BetaConfig');
 			}
 		}
 	}

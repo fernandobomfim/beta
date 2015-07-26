@@ -1,10 +1,11 @@
 <?php
 use application\libraries\Dbase\Dbase;
 use application\libraries\Dbase\Dbase_movger;
-use application\libraries\Dbase\Dbase_codfix;
 use application\models\Dbf_movger_entity;
 
 Class DBF_movger extends CI_Model {
+
+	public $filters = array();
 
 	public function __construct()
 	{
@@ -19,7 +20,7 @@ Class DBF_movger extends CI_Model {
 	public function fetchAll($formated = FALSE)
 	{
 		$arquivo = realpath($this->BIConfig->orgao->org_basepath."MOVGER.dbf");
-		$dbase = new Dbase();
+		$dbase = new Dbase_movger();
 		$dbase->setFile($arquivo);
 		$dbase->open();
 		$collection = $dbase->getCollection();

@@ -7,4 +7,8 @@ Interface Dbf_entity_interface {
 
 	public function getArray();
 
+	public function getRegisterIndex();
+
+	public function setRegisterIndex($registerIndex);
+
 }
